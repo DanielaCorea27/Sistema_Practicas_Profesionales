@@ -1,6 +1,0 @@
-sv\edu\itca\servdesk360\resources\JakartaEE8Resource.class
-sv\edu\itca\servicedesk360\controller\RegistroServlet.class
-sv\edu\itca\servicedesk360\controller\AccesoServlet.class
-sv\edu\itca\servicedesk360\controller\CerrarSesionServlet.class
-sv\edu\itca\servicedesk360\controller\PanelServlet.class
-sv\edu\itca\servdesk360\JakartaRestConfiguration.class
