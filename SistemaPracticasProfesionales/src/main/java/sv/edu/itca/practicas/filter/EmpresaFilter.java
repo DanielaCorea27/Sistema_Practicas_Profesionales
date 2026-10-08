@@ -1,5 +1,10 @@
 package sv.edu.itca.practicas.filter;
 
+/**
+ *
+ * @author danie
+ */
+
 import java.io.IOException;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -14,9 +19,6 @@ import javax.servlet.http.HttpSession;
 import sv.edu.itca.practicas.model.Rol;
 import sv.edu.itca.practicas.model.Usuario;
 
-/**
- * Solo los usuarios con rol EMPRESA entran a /empresa/*.
- */
 @WebFilter(
         filterName = "EmpresaFilter",
         urlPatterns = {"/empresa/*"}

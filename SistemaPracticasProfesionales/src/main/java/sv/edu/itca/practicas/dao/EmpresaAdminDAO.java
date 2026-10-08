@@ -1,5 +1,10 @@
 package sv.edu.itca.practicas.dao;
 
+/**
+ *
+ * @author danie
+ */
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,10 +15,7 @@ import java.util.List;
 import sv.edu.itca.practicas.model.EmpresaAdmin;
 import sv.edu.itca.practicas.util.Conexion;
 
-/**
- * Vista de empresas para el panel de administrador.
- * Usa la MISMA tabla empresas (el estado se muestra como ACTIVO/INACTIVO).
- */
+
 public class EmpresaAdminDAO {
 
     private EmpresaAdmin mapear(ResultSet rs) throws SQLException {

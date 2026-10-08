@@ -1,5 +1,10 @@
 package sv.edu.itca.practicas.dao;
 
+/**
+ *
+ * @author danie
+ */
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,9 +15,7 @@ import java.util.List;
 import sv.edu.itca.practicas.model.Empresa;
 import sv.edu.itca.practicas.util.Conexion;
 
-/**
- * Mismas firmas que la version en memoria, ahora sobre MySQL.
- */
+
 public class EmpresaDAO {
 
     private static final String SELECT =

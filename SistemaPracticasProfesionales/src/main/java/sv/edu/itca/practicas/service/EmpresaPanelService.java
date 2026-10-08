@@ -1,14 +1,14 @@
 package sv.edu.itca.practicas.service;
-
+/**
+ *
+ * @author danie
+ */
 import sv.edu.itca.practicas.dao.EmpresaDAO;
 import sv.edu.itca.practicas.dao.EmpresaDashboardDAO;
 import sv.edu.itca.practicas.dao.RepresentanteDAO;
 import sv.edu.itca.practicas.model.Empresa;
 import sv.edu.itca.practicas.model.Representante;
 
-/**
- * Logica del panel de la empresa: dashboard y perfil.
- */
 public class EmpresaPanelService {
 
     private final EmpresaDashboardDAO dashboardDAO = new EmpresaDashboardDAO();

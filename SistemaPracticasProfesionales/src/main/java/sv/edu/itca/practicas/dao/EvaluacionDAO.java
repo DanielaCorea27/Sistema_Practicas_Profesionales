@@ -1,4 +1,8 @@
 package sv.edu.itca.practicas.dao;
+/**
+ *
+ * @author danie
+ */
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -19,10 +23,7 @@ import sv.edu.itca.practicas.model.RespuestaEvaluada;
 import sv.edu.itca.practicas.util.Conexion;
 import sv.edu.itca.practicas.util.ReglaNegocioException;
 
-/**
- * Evaluaciones finales (calificacion 1-10 + preguntas de opcion multiple).
- * tipo_evaluador: 'EMPRESA' o 'MAESTRO'. Una evaluacion por asignacion y tipo.
- */
+
 public class EvaluacionDAO {
 
     // ------------------------------------------------------------------

@@ -1,9 +1,9 @@
 package sv.edu.itca.practicas.model;
-
 /**
- * Empresa. Se mantiene el constructor original y se agregan
- * descripcion y sitioWeb (planificacion) con setters.
+ *
+ * @author danie
  */
+
 public class Empresa {
 
     private int id;

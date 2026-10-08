@@ -1,5 +1,8 @@
 package sv.edu.itca.practicas.controller;
-
+/**
+ *
+ * @author danie
+ */
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -18,11 +21,7 @@ import sv.edu.itca.practicas.model.Usuario;
 import sv.edu.itca.practicas.service.EvaluacionService;
 import sv.edu.itca.practicas.util.ReglaNegocioException;
 
-/**
- * Pantalla 22: Evaluacion final.
- *  - Si aun no se evaluo: formulario (preguntas + calificacion 1-10 + observaciones).
- *  - Si ya se evaluo: solo lectura (la evaluacion no se puede modificar).
- */
+
 @WebServlet(
         name = "EmpresaEvaluacionServlet",
         urlPatterns = {"/empresa/evaluacion"}
@@ -84,7 +83,6 @@ public class EmpresaEvaluacionServlet extends HttpServlet {
             return;
         }
 
-        // Respuestas del formulario: p_<idPregunta> = idOpcion
         Map<Integer, Integer> respuestas = new LinkedHashMap<>();
 
         for (PreguntaEvaluacion p : service.preguntasActivas()) {

@@ -1,4 +1,8 @@
 package sv.edu.itca.practicas.service;
+/**
+ *
+ * @author danie
+ */
 
 import java.util.List;
 import sv.edu.itca.practicas.dao.EmpresaDAO;

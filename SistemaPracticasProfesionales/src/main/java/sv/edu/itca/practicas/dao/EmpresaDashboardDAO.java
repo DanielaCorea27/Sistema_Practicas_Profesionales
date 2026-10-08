@@ -1,14 +1,16 @@
 package sv.edu.itca.practicas.dao;
 
+/**
+ *
+ * @author danie
+ */
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import sv.edu.itca.practicas.util.Conexion;
 
-/**
- * Contadores del dashboard de empresa (pantalla 15 de la planificacion).
- */
 public class EmpresaDashboardDAO {
 
     /** Oportunidades publicadas por la empresa (no rechazadas). */

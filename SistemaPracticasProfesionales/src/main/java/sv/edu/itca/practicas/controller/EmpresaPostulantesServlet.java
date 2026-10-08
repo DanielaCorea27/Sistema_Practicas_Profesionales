@@ -1,5 +1,10 @@
 package sv.edu.itca.practicas.controller;
 
+/**
+ *
+ * @author danie
+ */
+
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -11,9 +16,6 @@ import sv.edu.itca.practicas.model.Representante;
 import sv.edu.itca.practicas.service.PostulacionService;
 import sv.edu.itca.practicas.util.ReglaNegocioException;
 
-/**
- * Pantalla 19: Postulantes (listar, aceptar y rechazar).
- */
 @WebServlet(
         name = "EmpresaPostulantesServlet",
         urlPatterns = {"/empresa/postulantes"}
@@ -92,7 +94,6 @@ public class EmpresaPostulantesServlet extends HttpServlet {
                 request.getContextPath() + "/empresa/postulantes");
     }
 
-    /** Mensaje que se muestra una sola vez despues de redirigir. */
     private void mensaje(HttpSession session, String tipo, String texto) {
 
         session.setAttribute("flashTipo", tipo);

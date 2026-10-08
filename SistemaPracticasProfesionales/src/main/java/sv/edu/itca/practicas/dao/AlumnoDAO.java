@@ -1,4 +1,8 @@
 package sv.edu.itca.practicas.dao;
+/**
+ *
+ * @author danie
+ */
 
 import java.util.ArrayList;
 import java.util.List;

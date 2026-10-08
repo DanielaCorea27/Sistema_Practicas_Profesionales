@@ -1,5 +1,8 @@
 package sv.edu.itca.practicas.controller;
-
+/**
+ *
+ * @author danie
+ */
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -12,9 +15,6 @@ import sv.edu.itca.practicas.model.Oportunidad;
 import sv.edu.itca.practicas.model.Representante;
 import sv.edu.itca.practicas.service.OportunidadService;
 
-/**
- * Pantalla 18: Crear oportunidad. Con ?id=N tambien sirve para editar.
- */
 @WebServlet(
         name = "EmpresaOportunidadFormServlet",
         urlPatterns = {"/empresa/oportunidad"}

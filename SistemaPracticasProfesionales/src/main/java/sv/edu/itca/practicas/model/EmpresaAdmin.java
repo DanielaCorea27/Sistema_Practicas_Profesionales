@@ -1,4 +1,8 @@
 package sv.edu.itca.practicas.model;
+/**
+ *
+ * @author danie
+ */
 
 import java.io.Serializable;
 

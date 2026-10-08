@@ -1,26 +1,3 @@
-/*
- * confirmar.js  -  Modal de confirmacion del Sistema de Pasantias ITCA.
- *
- * Reemplaza el cuadro nativo "localhost:8080 dice..." por un modal propio.
- * No depende de Bootstrap ni de otras librerias: sirve en TODAS las pantallas.
- *
- * USO (en cualquier JSP, antes de </body>):
- *   <script src="${pageContext.request.contextPath}/assets/confirmar.js"></script>
- *
- * Atributos que se pueden poner en <form>, <a> o <button type="submit">:
- *   data-confirm="¿Mensaje?"            (obligatorio: activa el modal)
- *   data-confirm-titulo="Titulo"        (opcional)
- *   data-confirm-boton="Eliminar"       (opcional, texto del boton principal)
- *   data-confirm-tipo="peligro"         (info | peligro | exito | aviso)
- *
- * AUTOMATICO (no hay que tocar las pantallas existentes):
- *   - onclick="return confirm('...')" / onsubmit="return confirm('...')"
- *     se convierten solos en este modal.
- *   - Todos los enlaces a /logout preguntan "¿Deseas cerrar tu sesión?".
- *
- * Tambien se puede llamar desde JavaScript:
- *   itcaConfirmar({mensaje:'...', tipo:'peligro'}, function () { ... });
- */
 (function () {
     'use strict';
 
@@ -79,7 +56,7 @@
     }
 
     // ------------------------------------------------------------------
-    //  Construccion del modal (una sola vez)
+    //  Construccion del modal 
     // ------------------------------------------------------------------
     function construir() {
 

@@ -1,5 +1,10 @@
 package sv.edu.itca.practicas.controller;
 
+/**
+ *
+ * @author danie
+ */
+
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -13,11 +18,6 @@ import sv.edu.itca.practicas.model.Usuario;
 import sv.edu.itca.practicas.service.SeguimientoService;
 import sv.edu.itca.practicas.util.ReglaNegocioException;
 
-/**
- * Pantalla 21: Seguimiento de un estudiante (?id=ID_ASIGNACION).
- * Muestra horas, avance, horario planificado, actividades y observaciones.
- * POST: agrega una observacion de la empresa.
- */
 @WebServlet(
         name = "EmpresaSeguimientoServlet",
         urlPatterns = {"/empresa/seguimiento"}
@@ -47,7 +47,6 @@ public class EmpresaSeguimientoServlet extends HttpServlet {
             // id ausente o invalido
         }
 
-        // No existe o es de otra empresa.
         if (asignacion == null) {
 
             response.sendRedirect(

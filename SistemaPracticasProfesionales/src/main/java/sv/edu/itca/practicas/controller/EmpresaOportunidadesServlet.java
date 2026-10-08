@@ -1,5 +1,10 @@
 package sv.edu.itca.practicas.controller;
 
+/**
+ *
+ * @author danie
+ */
+
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -9,9 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import sv.edu.itca.practicas.model.Representante;
 import sv.edu.itca.practicas.service.OportunidadService;
 
-/**
- * Pantalla 17: Mis oportunidades (listar y cerrar).
- */
+
 @WebServlet(
         name = "EmpresaOportunidadesServlet",
         urlPatterns = {"/empresa/oportunidades"}
