@@ -13,8 +13,8 @@ public class Conexion {
             "jdbc:mysql://localhost:3306/sistema_practicas_db"
             + "?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
 
-    private static final String USER = "admin";                   
-    private static final String PASS = "admin";
+    private static final String USER = "root";                   
+    private static final String PASS = "Himari";
 
     public static Connection obtenerConexion() throws SQLException {
 

@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import sv.edu.itca.practicas.model.PracticaInfo;
 import sv.edu.itca.practicas.service.PracticaInfoService;
+import sv.edu.itca.practicas.util.SesionAlumno;
 
 @WebServlet(
         name = "PracticaInfoServlet",
@@ -18,8 +19,6 @@ import sv.edu.itca.practicas.service.PracticaInfoService;
 public class PracticaInfoServlet extends HttpServlet {
 
     private PracticaInfoService service;
-
-    private static final int ALUMNO_PRUEBA = 1;
 
     @Override
     public void init() {
@@ -35,14 +34,18 @@ public class PracticaInfoServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
+        // Practica del alumno que inicio sesion (antes era el alumno 1 fijo).
         PracticaInfo practica =
-                service.buscarPorAlumno(ALUMNO_PRUEBA);
+                service.buscarPorAlumno(
+                        SesionAlumno.alumnoId(request)
+                );
 
         if (practica == null) {
 
             request.setAttribute(
                     "mensaje",
-                    "No se encontró información de la práctica."
+                    "No se encontró información de la práctica. "
+                    + "Aparecerá cuando una empresa acepte tu postulación."
             );
         }
 

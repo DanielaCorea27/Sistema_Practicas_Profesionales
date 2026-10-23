@@ -8,7 +8,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import sv.edu.itca.practicas.model.Usuario;
+import sv.edu.itca.practicas.service.AlumnoPortalService;
 import sv.edu.itca.practicas.service.RegistroHoraService;
+import sv.edu.itca.practicas.util.SesionAlumno;
 
 @WebServlet(
         name = "AlumnoDashboardServlet",
@@ -18,6 +20,9 @@ public class AlumnoDashboardServlet extends HttpServlet {
 
     private final RegistroHoraService registroHoraService =
             new RegistroHoraService();
+
+    private final AlumnoPortalService portal =
+            new AlumnoPortalService();
 
     @Override
     protected void doGet(
@@ -49,7 +54,9 @@ public class AlumnoDashboardServlet extends HttpServlet {
             return;
         }
 
-        int alumnoId = 1;
+        // Alumno real de la sesion (antes era alumnoId = 1).
+        int alumnoId =
+                SesionAlumno.alumnoId(request);
 
         double horasAprobadas =
                 registroHoraService
@@ -71,6 +78,14 @@ public class AlumnoDashboardServlet extends HttpServlet {
         request.setAttribute(
                 "horasTotales",
                 horasTotales
+        );
+
+        // Horas reales de la carrera (320 / 640). El dashboard.jsp actual
+        // todavia las tiene fijas en 640; este atributo queda listo para
+        // cuando el equipo actualice la vista.
+        request.setAttribute(
+                "horasRequeridas",
+                portal.obtenerHorasRequeridas(alumnoId)
         );
 
         request.getRequestDispatcher(

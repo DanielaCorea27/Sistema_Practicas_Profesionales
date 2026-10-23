@@ -10,7 +10,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import sv.edu.itca.practicas.model.EvidenciaResumen;
+import sv.edu.itca.practicas.model.Usuario;
 import sv.edu.itca.practicas.service.EvidenciaService;
+import sv.edu.itca.practicas.util.SesionAlumno;
 
 @WebServlet(
         name = "AlumnoEvidenciasServlet",
@@ -19,8 +21,6 @@ import sv.edu.itca.practicas.service.EvidenciaService;
 public class AlumnoEvidenciasServlet extends HttpServlet {
 
     private EvidenciaService service;
-
-    private static final int ALUMNO_PRUEBA = 1;
 
     @Override
     public void init() throws ServletException {
@@ -44,7 +44,9 @@ public class AlumnoEvidenciasServlet extends HttpServlet {
 
         request.setAttribute(
                 "evidencias",
-                service.listarPorAlumno(ALUMNO_PRUEBA)
+                service.listarPorAlumno(
+                        SesionAlumno.alumnoId(request)
+                )
         );
 
         request.getRequestDispatcher(
@@ -72,11 +74,17 @@ public class AlumnoEvidenciasServlet extends HttpServlet {
         String tipo =
                 request.getParameter("tipo");
 
+        Usuario usuario =
+                SesionAlumno.usuario(request);
+
         EvidenciaResumen evidencia =
                 new EvidenciaResumen();
 
-        evidencia.setAlumnoId(ALUMNO_PRUEBA);
-        evidencia.setAlumno("Andersson Cienfuegos");
+        // Alumno real de la sesion (antes: alumno 1 "Andersson Cienfuegos").
+        evidencia.setAlumnoId(SesionAlumno.alumnoId(request));
+        evidencia.setAlumno(
+                usuario == null ? "" : usuario.getNombreCompleto()
+        );
         evidencia.setTitulo(titulo);
         evidencia.setDescripcion(descripcion);
         evidencia.setTipo(tipo);
@@ -85,6 +93,7 @@ public class AlumnoEvidenciasServlet extends HttpServlet {
         );
         evidencia.setEstado("PENDIENTE");
 
+        // Falla si el alumno aun no tiene empresa asignada.
         if (service.guardar(evidencia)) {
 
             response.sendRedirect(
@@ -113,7 +122,11 @@ public class AlumnoEvidenciasServlet extends HttpServlet {
                             request.getParameter("id")
                     );
 
-            service.eliminar(id);
+            // Solo elimina evidencias del propio alumno y no aprobadas.
+            service.eliminar(
+                    id,
+                    SesionAlumno.alumnoId(request)
+            );
 
         } catch (Exception e) {
         }

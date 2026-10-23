@@ -28,42 +28,4 @@ public class PracticaInfoService {
 
         return dao.listar();
     }
-
-    public boolean guardar(PracticaInfo practica) {
-
-        if (practica == null) {
-
-            return false;
-        }
-
-        if (practica.getAlumnoId() <= 0) {
-
-            return false;
-        }
-
-        if (practica.getAlumno() == null
-                || practica.getAlumno().trim().isEmpty()) {
-
-            return false;
-        }
-
-        if (practica.getCarrera() == null
-                || practica.getCarrera().trim().isEmpty()) {
-
-            return false;
-        }
-
-        if (practica.getHorasRequeridas() <= 0) {
-
-            return false;
-        }
-
-        if (practica.getEmpresa() == null
-                || practica.getEmpresa().trim().isEmpty()) {
-
-            return false;
-        }
-
-        return dao.actualizar(practica);
-    }
 }

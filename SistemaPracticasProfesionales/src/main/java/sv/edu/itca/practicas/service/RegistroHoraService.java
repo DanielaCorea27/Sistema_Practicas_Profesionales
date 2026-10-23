@@ -63,8 +63,14 @@ public class RegistroHoraService {
         return registroHoraDAO.actualizar(registro);
     }
 
-    public boolean eliminar(int id) {
-        return registroHoraDAO.eliminar(id);
+    /** Elimina un registro SOLO si pertenece a ese alumno y no esta aprobado. */
+    public boolean eliminar(int id, int alumnoId) {
+
+        if (id <= 0 || alumnoId <= 0) {
+            return false;
+        }
+
+        return registroHoraDAO.eliminar(id, alumnoId);
     }
 
     public boolean aprobar(int id, String observacion) {

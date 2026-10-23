@@ -53,6 +53,10 @@ public class RegistroCuentaDAO {
             e.printStackTrace();
         }
 
+        
+                System.out.println(">>> DIAGNOSTICO carreras leidas: " + lista.size());
+
+        
         return lista;
     }
 

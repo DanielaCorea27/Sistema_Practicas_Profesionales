@@ -1,11 +1,15 @@
 package sv.edu.itca.practicas.service;
 
+import java.util.Arrays;
 import java.util.List;
 
 import sv.edu.itca.practicas.dao.EvidenciaDAO;
 import sv.edu.itca.practicas.model.EvidenciaResumen;
 
 public class EvidenciaService {
+
+    private static final List<String> TIPOS =
+            Arrays.asList("INFORME", "CAPTURA", "DOCUMENTO", "OTRO");
 
     private final EvidenciaDAO evidenciaDAO;
 
@@ -53,6 +57,13 @@ public class EvidenciaService {
                 evidencia.getDescripcion().trim()
         );
 
+        // El tipo se guarda en la columna actividades.evidencia.
+        String tipo = evidencia.getTipo() == null
+                ? ""
+                : evidencia.getTipo().trim().toUpperCase();
+
+        evidencia.setTipo(TIPOS.contains(tipo) ? tipo : "OTRO");
+
         if (evidencia.getEstado() == null
                 || evidencia.getEstado().trim().isEmpty()) {
 
@@ -62,8 +73,14 @@ public class EvidenciaService {
         return evidenciaDAO.insertar(evidencia);
     }
 
-    public boolean eliminar(int id) {
-        return evidenciaDAO.eliminar(id);
+    /** Elimina una evidencia SOLO si es del alumno y no esta aprobada. */
+    public boolean eliminar(int id, int alumnoId) {
+
+        if (id <= 0 || alumnoId <= 0) {
+            return false;
+        }
+
+        return evidenciaDAO.eliminar(id, alumnoId);
     }
 
     public boolean aprobar(int id) {

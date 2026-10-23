@@ -8,16 +8,21 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import sv.edu.itca.practicas.model.RegistroHora;
+import sv.edu.itca.practicas.service.AlumnoPortalService;
 import sv.edu.itca.practicas.service.RegistroHoraService;
+import sv.edu.itca.practicas.util.SesionAlumno;
 
 @WebServlet(name = "ReporteAlumnoServlet", urlPatterns = {"/reporte/alumno"})
 public class ReporteAlumnoServlet extends HttpServlet {
 
     private RegistroHoraService service;
 
+    private AlumnoPortalService portal;
+
     @Override
     public void init() throws ServletException {
         service = new RegistroHoraService();
+        portal = new AlumnoPortalService();
     }
 
     @Override
@@ -26,8 +31,9 @@ public class ReporteAlumnoServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        int alumnoId = 1;
-        double horasRequeridas = 640;
+        // Alumno real de la sesion y horas que exige su carrera (320 / 640).
+        int alumnoId = SesionAlumno.alumnoId(request);
+        double horasRequeridas = portal.obtenerHorasRequeridas(alumnoId);
 
         List<RegistroHora> registros =
                 service.listarPorAlumno(alumnoId);

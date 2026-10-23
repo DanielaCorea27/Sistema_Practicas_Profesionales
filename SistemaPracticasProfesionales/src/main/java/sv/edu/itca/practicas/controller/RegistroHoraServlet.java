@@ -9,7 +9,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import sv.edu.itca.practicas.model.RegistroHora;
+import sv.edu.itca.practicas.service.AlumnoPortalService;
 import sv.edu.itca.practicas.service.RegistroHoraService;
+import sv.edu.itca.practicas.util.SesionAlumno;
 
 @WebServlet(
         name = "RegistroHoraServlet",
@@ -18,37 +20,19 @@ import sv.edu.itca.practicas.service.RegistroHoraService;
 public class RegistroHoraServlet
         extends HttpServlet {
 
-
     private RegistroHoraService service;
 
-
-    /*
-     * Para esta primera versión utilizaremos
-     * el alumno 1 como alumno de prueba.
-     *
-     * Cuando conectemos Usuarios + Alumnos,
-     * este valor vendrá de la sesión.
-     */
-    private static final int ALUMNO_PRUEBA = 1;
-
-
-    /*
-     * Ejemplo para Ingeniería en Desarrollo
-     * de Software.
-     *
-     * Más adelante esta información
-     * vendrá directamente de Carrera.
-     */
-    private static final double HORAS_REQUERIDAS = 640;
-
+    private AlumnoPortalService portal;
 
     @Override
     public void init() {
 
         service =
                 new RegistroHoraService();
-    }
 
+        portal =
+                new AlumnoPortalService();
+    }
 
     @Override
     protected void doGet(
@@ -58,56 +42,38 @@ public class RegistroHoraServlet
 
         request.setCharacterEncoding("UTF-8");
 
-
         String accion =
                 request.getParameter("accion");
-
 
         if (accion == null
                 || accion.trim().isEmpty()) {
 
-            mostrarPanel(
-                    request,
-                    response
-            );
+            mostrarPanel(request, response);
 
             return;
         }
-
 
         switch (accion) {
 
             case "nuevo":
 
-                nuevo(
-                        request,
-                        response
-                );
+                nuevo(request, response);
 
                 break;
-
 
             case "eliminar":
 
-                eliminar(
-                        request,
-                        response
-                );
+                eliminar(request, response);
 
                 break;
 
-
             default:
 
-                mostrarPanel(
-                        request,
-                        response
-                );
+                mostrarPanel(request, response);
 
                 break;
         }
     }
-
 
     @Override
     protected void doPost(
@@ -115,23 +81,14 @@ public class RegistroHoraServlet
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        request.setCharacterEncoding(
-                "UTF-8"
-        );
-
+        request.setCharacterEncoding("UTF-8");
 
         String accion =
-                request.getParameter(
-                        "accion"
-                );
-
+                request.getParameter("accion");
 
         if ("guardar".equals(accion)) {
 
-            guardar(
-                    request,
-                    response
-            );
+            guardar(request, response);
 
         } else {
 
@@ -142,81 +99,70 @@ public class RegistroHoraServlet
         }
     }
 
-
     private void mostrarPanel(
             HttpServletRequest request,
             HttpServletResponse response)
             throws ServletException, IOException {
 
+        // Alumno real de la sesion y horas que exige su carrera (320 / 640).
+        int alumnoId =
+                SesionAlumno.alumnoId(request);
+
+        double horasRequeridas =
+                portal.obtenerHorasRequeridas(alumnoId);
+
         request.setAttribute(
                 "alumnoId",
-                ALUMNO_PRUEBA
+                alumnoId
         );
-
 
         request.setAttribute(
                 "registros",
-                service.listarPorAlumno(
-                        ALUMNO_PRUEBA
-                )
+                service.listarPorAlumno(alumnoId)
         );
 
-
         double total =
-                service.obtenerTotalHoras(
-                        ALUMNO_PRUEBA
-                );
-
+                service.obtenerTotalHoras(alumnoId);
 
         double aprobadas =
-                service.obtenerHorasAprobadas(
-                        ALUMNO_PRUEBA
-                );
-
+                service.obtenerHorasAprobadas(alumnoId);
 
         double restantes =
                 service.obtenerHorasRestantes(
-                        ALUMNO_PRUEBA,
-                        HORAS_REQUERIDAS
+                        alumnoId,
+                        horasRequeridas
                 );
-
 
         double porcentaje =
                 service.obtenerPorcentaje(
-                        ALUMNO_PRUEBA,
-                        HORAS_REQUERIDAS
+                        alumnoId,
+                        horasRequeridas
                 );
-
 
         request.setAttribute(
                 "totalHoras",
                 total
         );
 
-
         request.setAttribute(
                 "horasAprobadas",
                 aprobadas
         );
-
 
         request.setAttribute(
                 "horasRestantes",
                 restantes
         );
 
-
         request.setAttribute(
                 "porcentaje",
                 porcentaje
         );
 
-
         request.setAttribute(
                 "horasRequeridas",
-                HORAS_REQUERIDAS
+                horasRequeridas
         );
-
 
         request.getRequestDispatcher(
                 "/alumno/horas.jsp"
@@ -225,7 +171,6 @@ public class RegistroHoraServlet
                 response
         );
     }
-
 
     private void nuevo(
             HttpServletRequest request,
@@ -237,7 +182,6 @@ public class RegistroHoraServlet
                 LocalDate.now()
         );
 
-
         request.getRequestDispatcher(
                 "/alumno/registro-hora.jsp"
         ).forward(
@@ -246,31 +190,40 @@ public class RegistroHoraServlet
         );
     }
 
-
     private void guardar(
             HttpServletRequest request,
             HttpServletResponse response)
             throws ServletException, IOException {
 
+        int alumnoId =
+                SesionAlumno.alumnoId(request);
+
+        // Sin empresa asignada todavia no se pueden registrar horas.
+        if (!portal.tieneAsignacionActiva(alumnoId)) {
+
+            mostrarError(
+                    request,
+                    response,
+                    "Aún no tienes una empresa asignada. "
+                    + "Podrás registrar horas cuando una empresa "
+                    + "acepte tu postulación."
+            );
+
+            return;
+        }
+
         String fechaParametro =
                 request.getParameter("fecha");
-
 
         String horasParametro =
                 request.getParameter("horas");
 
-
         String actividad =
-                request.getParameter(
-                        "actividad"
-                );
-
+                request.getParameter("actividad");
 
         LocalDate fecha;
 
-
         double horas;
-
 
         try {
 
@@ -290,7 +243,6 @@ public class RegistroHoraServlet
             return;
         }
 
-
         try {
 
             horas =
@@ -309,7 +261,6 @@ public class RegistroHoraServlet
             return;
         }
 
-
         if (horas <= 0) {
 
             mostrarError(
@@ -321,7 +272,6 @@ public class RegistroHoraServlet
             return;
         }
 
-
         if (horas > 24) {
 
             mostrarError(
@@ -332,7 +282,6 @@ public class RegistroHoraServlet
 
             return;
         }
-
 
         if (actividad == null
                 || actividad.trim().isEmpty()) {
@@ -346,46 +295,18 @@ public class RegistroHoraServlet
             return;
         }
 
-
         RegistroHora registro =
                 new RegistroHora();
 
-
-        registro.setAlumnoId(
-                ALUMNO_PRUEBA
-        );
-
-
-        registro.setFecha(
-                fecha
-        );
-
-
-        registro.setHoras(
-                horas
-        );
-
-
-        registro.setActividad(
-                actividad.trim()
-        );
-
-
-        registro.setEstado(
-                "PENDIENTE"
-        );
-
-
-        registro.setObservacion(
-                ""
-        );
-
+        registro.setAlumnoId(alumnoId);
+        registro.setFecha(fecha);
+        registro.setHoras(horas);
+        registro.setActividad(actividad.trim());
+        registro.setEstado("PENDIENTE");
+        registro.setObservacion("");
 
         boolean guardado =
-                service.guardar(
-                        registro
-                );
-
+                service.guardar(registro);
 
         if (guardado) {
 
@@ -404,7 +325,6 @@ public class RegistroHoraServlet
         }
     }
 
-
     private void eliminar(
             HttpServletRequest request,
             HttpServletResponse response)
@@ -414,31 +334,28 @@ public class RegistroHoraServlet
 
             int id =
                     Integer.parseInt(
-                            request.getParameter(
-                                    "id"
-                            )
+                            request.getParameter("id")
                     );
 
-
-            service.eliminar(id);
-
+            // Solo elimina registros del propio alumno y no aprobados.
+            service.eliminar(
+                    id,
+                    SesionAlumno.alumnoId(request)
+            );
 
             response.sendRedirect(
                     request.getContextPath()
                     + "/alumno/horas"
             );
 
-
         } catch (NumberFormatException e) {
 
             response.sendError(
-                    HttpServletResponse
-                            .SC_BAD_REQUEST,
+                    HttpServletResponse.SC_BAD_REQUEST,
                     "ID inválido."
             );
         }
     }
-
 
     private void mostrarError(
             HttpServletRequest request,
@@ -451,12 +368,10 @@ public class RegistroHoraServlet
                 mensaje
         );
 
-
         request.setAttribute(
                 "fechaActual",
                 LocalDate.now()
         );
-
 
         request.getRequestDispatcher(
                 "/alumno/registro-hora.jsp"
