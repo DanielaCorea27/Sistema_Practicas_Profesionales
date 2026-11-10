@@ -1,114 +1,169 @@
 package sv.edu.itca.practicas.dao;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import sv.edu.itca.practicas.model.Rol;
 import sv.edu.itca.practicas.model.UsuarioAdmin;
+import sv.edu.itca.practicas.util.Conexion;
 
 public class UsuarioAdminDAO {
 
-    private static final List<UsuarioAdmin> usuarios =
-            new ArrayList<>();
+    private static final String SELECT =
+            "SELECT id_usuario, nombre, apellido, correo, id_rol, estado "
+            + "FROM usuarios ";
 
-    private static int siguienteId = 4;
+    private UsuarioAdmin mapear(ResultSet rs) throws SQLException {
 
-    static {
-
-        usuarios.add(
-                new UsuarioAdmin(
-                        1,
-                        "Andersson Cienfuegos",
-                        "andersson",
-                        "ALUMNO",
-                        "ACTIVO"
-                )
-        );
-
-        usuarios.add(
-                new UsuarioAdmin(
-                        2,
-                        "Rodrigo Martínez",
-                        "rodrigo",
-                        "ALUMNO",
-                        "ACTIVO"
-                )
-        );
-
-        usuarios.add(
-                new UsuarioAdmin(
-                        3,
-                        "Maestro Principal",
-                        "maestro",
-                        "MAESTRO",
-                        "ACTIVO"
-                )
+        return new UsuarioAdmin(
+                rs.getInt("id_usuario"),
+                rs.getString("nombre"),
+                rs.getString("apellido"),
+                rs.getString("correo"),
+                Rol.fromId(rs.getInt("id_rol")),
+                rs.getBoolean("estado")
         );
     }
 
     public List<UsuarioAdmin> listarTodos() {
-        return new ArrayList<>(usuarios);
+
+        List<UsuarioAdmin> lista = new ArrayList<>();
+
+        try (Connection con = Conexion.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(
+                     SELECT + "ORDER BY id_usuario");
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                lista.add(mapear(rs));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return lista;
     }
 
     public UsuarioAdmin buscarPorId(int id) {
 
-        for (UsuarioAdmin usuario : usuarios) {
+        try (Connection con = Conexion.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(
+                     SELECT + "WHERE id_usuario = ?")) {
 
-            if (usuario.getId() == id) {
-                return usuario;
+            ps.setInt(1, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? mapear(rs) : null;
             }
-        }
 
-        return null;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public boolean existeCorreo(String correo) {
+
+        try (Connection con = Conexion.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(
+                     "SELECT COUNT(*) FROM usuarios WHERE correo = ?")) {
+
+            ps.setString(1, correo);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() && rs.getInt(1) > 0;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public boolean insertar(UsuarioAdmin usuario) {
 
-        usuario.setId(siguienteId++);
+        String sql = "INSERT INTO usuarios (id_rol, nombre, apellido, correo, "
+                + "password, estado) VALUES (?, ?, ?, ?, SHA2(?, 256), 1)";
 
-        usuarios.add(usuario);
+        try (Connection con = Conexion.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(
+                     sql, Statement.RETURN_GENERATED_KEYS)) {
 
-        return true;
+            ps.setInt(1, usuario.getRolEnum().getId());
+            ps.setString(2, usuario.getNombre());
+            ps.setString(3, usuario.getApellido());
+            ps.setString(4, usuario.getCorreo());
+            ps.setString(5, usuario.getPassword());
+
+            if (ps.executeUpdate() == 0) {
+                return false;
+            }
+
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
+                    usuario.setId(keys.getInt(1));
+                }
+            }
+
+            usuario.setActivo(true);
+            return true;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public boolean cambiarEstado(int id) {
 
-        UsuarioAdmin usuario =
-                buscarPorId(id);
+        try (Connection con = Conexion.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(
+                     "UPDATE usuarios SET estado = NOT estado "
+                     + "WHERE id_usuario = ?")) {
 
-        if (usuario == null) {
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
             return false;
         }
-
-        if ("ACTIVO".equalsIgnoreCase(
-                usuario.getEstado())) {
-
-            usuario.setEstado("INACTIVO");
-
-        } else {
-
-            usuario.setEstado("ACTIVO");
-        }
-
-        return true;
     }
 
     public int contarTodos() {
-        return usuarios.size();
+        return contar("SELECT COUNT(*) FROM usuarios", null);
     }
 
     public int contarActivos() {
+        return contar("SELECT COUNT(*) FROM usuarios WHERE estado = 1", null);
+    }
 
-        int cantidad = 0;
+    public int contarPorRol(Rol rol) {
+        return contar("SELECT COUNT(*) FROM usuarios WHERE id_rol = ?", rol.getId());
+    }
 
-        for (UsuarioAdmin usuario : usuarios) {
+    private int contar(String sql, Integer parametro) {
 
-            if ("ACTIVO".equalsIgnoreCase(
-                    usuario.getEstado())) {
+        try (Connection con = Conexion.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
 
-                cantidad++;
+            if (parametro != null) {
+                ps.setInt(1, parametro);
             }
-        }
 
-        return cantidad;
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 0;
+        }
     }
 }

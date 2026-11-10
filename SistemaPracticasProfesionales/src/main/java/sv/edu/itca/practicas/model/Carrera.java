@@ -8,18 +8,21 @@ public class Carrera implements Serializable {
 
     private int id;
     private String nombre;
-    private double horasRequeridas;
+    private int idTipoCarrera;
+    private String tipo;
+    private int horasRequeridas;
+    private int totalAlumnos;
 
     public Carrera() {
     }
 
-    public Carrera(
-            int id,
-            String nombre,
-            double horasRequeridas) {
+    public Carrera(int id, String nombre, int idTipoCarrera,
+            String tipo, int horasRequeridas) {
 
         this.id = id;
         this.nombre = nombre;
+        this.idTipoCarrera = idTipoCarrera;
+        this.tipo = tipo;
         this.horasRequeridas = horasRequeridas;
     }
 
@@ -39,13 +42,35 @@ public class Carrera implements Serializable {
         this.nombre = nombre;
     }
 
-    public double getHorasRequeridas() {
+    public int getIdTipoCarrera() {
+        return idTipoCarrera;
+    }
+
+    public void setIdTipoCarrera(int idTipoCarrera) {
+        this.idTipoCarrera = idTipoCarrera;
+    }
+
+    public String getTipo() {
+        return tipo;
+    }
+
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
+    }
+
+    public int getHorasRequeridas() {
         return horasRequeridas;
     }
 
-    public void setHorasRequeridas(
-            double horasRequeridas) {
-
+    public void setHorasRequeridas(int horasRequeridas) {
         this.horasRequeridas = horasRequeridas;
+    }
+
+    public int getTotalAlumnos() {
+        return totalAlumnos;
+    }
+
+    public void setTotalAlumnos(int totalAlumnos) {
+        this.totalAlumnos = totalAlumnos;
     }
 }

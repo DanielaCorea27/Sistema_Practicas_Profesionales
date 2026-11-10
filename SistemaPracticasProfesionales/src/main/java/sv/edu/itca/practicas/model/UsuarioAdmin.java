@@ -8,25 +8,24 @@ public class UsuarioAdmin implements Serializable {
 
     private int id;
     private String nombre;
-    private String usuario;
-    private String rol;
-    private String estado;
+    private String apellido;
+    private String correo;
+    private String password;
+    private Rol rol;
+    private boolean activo;
 
     public UsuarioAdmin() {
     }
 
-    public UsuarioAdmin(
-            int id,
-            String nombre,
-            String usuario,
-            String rol,
-            String estado) {
+    public UsuarioAdmin(int id, String nombre, String apellido,
+            String correo, Rol rol, boolean activo) {
 
         this.id = id;
         this.nombre = nombre;
-        this.usuario = usuario;
+        this.apellido = apellido;
+        this.correo = correo;
         this.rol = rol;
-        this.estado = estado;
+        this.activo = activo;
     }
 
     public int getId() {
@@ -45,27 +44,56 @@ public class UsuarioAdmin implements Serializable {
         this.nombre = nombre;
     }
 
-    public String getUsuario() {
-        return usuario;
+    public String getApellido() {
+        return apellido;
     }
 
-    public void setUsuario(String usuario) {
-        this.usuario = usuario;
+    public void setApellido(String apellido) {
+        this.apellido = apellido;
     }
 
-    public String getRol() {
+    public String getNombreCompleto() {
+        return (nombre == null ? "" : nombre)
+                + (apellido == null || apellido.isEmpty() ? "" : " " + apellido);
+    }
+
+    public String getCorreo() {
+        return correo;
+    }
+
+    public void setCorreo(String correo) {
+        this.correo = correo;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public Rol getRolEnum() {
         return rol;
     }
 
-    public void setRol(String rol) {
+    public void setRolEnum(Rol rol) {
         this.rol = rol;
     }
 
-    public String getEstado() {
-        return estado;
+    public String getRol() {
+        return rol == null ? "" : rol.name();
     }
 
-    public void setEstado(String estado) {
-        this.estado = estado;
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
+    }
+
+    public String getEstado() {
+        return activo ? "ACTIVO" : "INACTIVO";
     }
 }
