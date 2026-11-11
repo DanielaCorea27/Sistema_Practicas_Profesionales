@@ -3,284 +3,292 @@
 <%@page import="sv.edu.itca.practicas.model.RegistroHora"%>
 
 <%
-    List<RegistroHora> registros =
-            (List<RegistroHora>) request.getAttribute("registros");
+    List<RegistroHora> registros
+            = (List<RegistroHora>) request.getAttribute("registros");
 
-    Integer totalRegistros =
-            (Integer) request.getAttribute("totalRegistros");
+    Integer totalRegistros
+            = (Integer) request.getAttribute("totalRegistros");
 
-    Integer pendientes =
-            (Integer) request.getAttribute("pendientes");
+    Integer pendientes
+            = (Integer) request.getAttribute("pendientes");
 
-    Integer aprobados =
-            (Integer) request.getAttribute("aprobados");
+    Integer aprobados
+            = (Integer) request.getAttribute("aprobados");
 
-    Integer rechazados =
-            (Integer) request.getAttribute("rechazados");
+    Integer rechazados
+            = (Integer) request.getAttribute("rechazados");
 
-    Double horasTotales =
-            (Double) request.getAttribute("horasTotales");
+    Double horasTotales
+            = (Double) request.getAttribute("horasTotales");
 
-    Double horasAprobadas =
-            (Double) request.getAttribute("horasAprobadas");
+    Double horasAprobadas
+            = (Double) request.getAttribute("horasAprobadas");
 
-    Double horasPendientes =
-            (Double) request.getAttribute("horasPendientes");
+    Double horasPendientes
+            = (Double) request.getAttribute("horasPendientes");
 %>
 
 <!DOCTYPE html>
 <html lang="es">
 
-<head>
+    <head>
 
-    <meta charset="UTF-8">
+        <meta charset="UTF-8">
 
-    <title>Reporte General</title>
+        <title>Reporte General</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+              rel="stylesheet">
 
-    <style>
+        <style>
 
-        body {
-            background: #f4f7fb;
-        }
+            body {
+                background: #f4f7fb;
+            }
 
-        .header {
-            background: #123b6d;
-            color: white;
-            padding: 25px;
-            border-radius: 0 0 20px 20px;
-        }
+            .header {
+                background: #123b6d;
+                color: white;
+                padding: 25px;
+                border-radius: 0 0 20px 20px;
+            }
 
-        .stat {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 5px 18px rgba(0,0,0,.08);
-        }
+            .stat {
+                border: none;
+                border-radius: 15px;
+                box-shadow: 0 5px 18px rgba(0,0,0,.08);
+            }
 
-    </style>
+        </style>
 
-</head>
+    </head>
 
-<body>
+    <body>
 
-<div class="header">
+        <div class="header">
 
-    <div class="container">
+            <div class="container">
 
-        <h2>Reporte General</h2>
+                <h2>Reporte General</h2>
 
-        <p class="mb-0">
-            Sistema de Seguimiento de Prácticas Profesionales
-        </p>
-
-    </div>
-
-</div>
-
-<div class="container py-4">
-
-    <div class="row g-4 mb-4">
-
-        <div class="col-md-3">
-
-            <div class="card stat p-4">
-
-                <h6>Total registros</h6>
-
-                <h2>
-                    <%= totalRegistros %>
-                </h2>
+                <p class="mb-0">
+                    Sistema de Seguimiento de Prácticas Profesionales
+                </p>
 
             </div>
 
         </div>
 
-        <div class="col-md-3">
+        <div class="container py-4">
 
-            <div class="card stat p-4">
+            <div class="row g-4 mb-4">
 
-                <h6>Pendientes</h6>
+                <div class="col-md-3">
 
-                <h2>
-                    <%= pendientes %>
-                </h2>
+                    <div class="card stat p-4">
 
-            </div>
+                        <h6>Total registros</h6>
 
-        </div>
+                        <h2>
+                            <%= totalRegistros%>
+                        </h2>
 
-        <div class="col-md-3">
+                    </div>
 
-            <div class="card stat p-4">
+                </div>
 
-                <h6>Aprobados</h6>
+                <div class="col-md-3">
 
-                <h2>
-                    <%= aprobados %>
-                </h2>
+                    <div class="card stat p-4">
 
-            </div>
+                        <h6>Pendientes</h6>
 
-        </div>
+                        <h2>
+                            <%= pendientes%>
+                        </h2>
 
-        <div class="col-md-3">
+                    </div>
 
-            <div class="card stat p-4">
+                </div>
 
-                <h6>Rechazados</h6>
+                <div class="col-md-3">
 
-                <h2>
-                    <%= rechazados %>
-                </h2>
+                    <div class="card stat p-4">
 
-            </div>
+                        <h6>Aprobados</h6>
 
-        </div>
+                        <h2>
+                            <%= aprobados%>
+                        </h2>
 
-    </div>
+                    </div>
 
-    <div class="row g-4 mb-4">
+                </div>
 
-        <div class="col-md-4">
+                <div class="col-md-3">
 
-            <div class="card stat p-4">
+                    <div class="card stat p-4">
 
-                <h6>Horas registradas</h6>
+                        <h6>Rechazados</h6>
 
-                <h3>
-                    <%= horasTotales %>
-                </h3>
+                        <h2>
+                            <%= rechazados%>
+                        </h2>
 
-            </div>
+                    </div>
 
-        </div>
-
-        <div class="col-md-4">
-
-            <div class="card stat p-4">
-
-                <h6>Horas aprobadas</h6>
-
-                <h3>
-                    <%= horasAprobadas %>
-                </h3>
+                </div>
 
             </div>
 
-        </div>
+            <div class="row g-4 mb-4">
 
-        <div class="col-md-4">
+                <div class="col-md-4">
 
-            <div class="card stat p-4">
+                    <div class="card stat p-4">
 
-                <h6>Horas pendientes</h6>
+                        <h6>Horas registradas</h6>
 
-                <h3>
-                    <%= horasPendientes %>
-                </h3>
+                        <h3>
+                            <%= horasTotales%>
+                        </h3>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <div class="card stat p-4">
+
+                        <h6>Horas aprobadas</h6>
+
+                        <h3>
+                            <%= horasAprobadas%>
+                        </h3>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <div class="card stat p-4">
+
+                        <h6>Horas pendientes</h6>
+
+                        <h3>
+                            <%= horasPendientes%>
+                        </h3>
+
+                    </div>
+
+                </div>
 
             </div>
 
-        </div>
+            <div class="card stat">
 
-    </div>
+                <div class="card-body">
 
-    <div class="card stat">
+                    <h4 class="mb-4">
+                        Registros de prácticas
+                    </h4>
 
-        <div class="card-body">
+                    <div class="table-responsive">
 
-            <h4 class="mb-4">
-                Registros de prácticas
-            </h4>
+                        <table class="table table-hover">
 
-            <div class="table-responsive">
+                            <thead>
 
-                <table class="table table-hover">
+                                <tr>
 
-                    <thead>
+                                    <th>ID</th>
+                                    <th>Alumno</th>
+                                    <th>Fecha</th>
+                                    <th>Horas</th>
+                                    <th>Actividad</th>
+                                    <th>Estado</th>
 
-                        <tr>
+                                </tr>
 
-                            <th>ID</th>
-                            <th>Alumno</th>
-                            <th>Fecha</th>
-                            <th>Horas</th>
-                            <th>Actividad</th>
-                            <th>Estado</th>
+                            </thead>
 
-                        </tr>
+                            <tbody>
 
-                    </thead>
+                                <%
+                                    if (registros != null) {
 
-                    <tbody>
+                                        for (RegistroHora r : registros) {
+                                %>
+
+                                <tr>
+
+                                    <td>
+                                        <%= r.getId()%>
+                                    </td>
+
+                                    <td>
+                                        <%= r.getAlumnoId()%>
+                                    </td>
+
+                                    <td>
+                                        <%= r.getFecha()%>
+                                    </td>
+
+                                    <td>
+                                        <%= r.getHoras()%>
+                                    </td>
+
+                                    <td>
+                                        <%= r.getActividad()%>
+                                    </td>
+
+                                    <td>
+                                        <%= r.getEstado()%>
+                                    </td>
+
+                                </tr>
+
+                                <%
+                                        }
+                                    }
+                                %>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                    <a href="<%=request.getContextPath()%>/reporte/exportar"
+                       class="btn btn-success me-2">
+
+                        Exportar CSV
+
+                    </a>
 
                     <%
-                        if (registros != null) {
+                        Object rolSesion = session.getAttribute("rol");
+                        String rutaVolver = "/admin/dashboard.jsp";
 
-                            for (RegistroHora r : registros) {
-                    %>
-
-                        <tr>
-
-                            <td>
-                                <%= r.getId() %>
-                            </td>
-
-                            <td>
-                                <%= r.getAlumnoId() %>
-                            </td>
-
-                            <td>
-                                <%= r.getFecha() %>
-                            </td>
-
-                            <td>
-                                <%= r.getHoras() %>
-                            </td>
-
-                            <td>
-                                <%= r.getActividad() %>
-                            </td>
-
-                            <td>
-                                <%= r.getEstado() %>
-                            </td>
-
-                        </tr>
-
-                    <%
-                            }
+                        if (rolSesion != null && "MAESTRO".equals(rolSesion.toString())) {
+                            rutaVolver = "/maestro/dashboard";
                         }
                     %>
+                    <a href="<%=request.getContextPath()%><%=rutaVolver%>"
+                       class="btn btn-secondary">
 
-                    </tbody>
+                        Volver
 
-                </table>
+                    </a>
+
+                </div>
 
             </div>
 
-            <a href="<%=request.getContextPath()%>/reporte/exportar"
-               class="btn btn-success me-2">
-
-                Exportar CSV
-
-            </a>
-
-            <a href="<%=request.getContextPath()%>/admin/dashboard.jsp"
-               class="btn btn-secondary">
-
-                Volver
-
-            </a>
-
         </div>
 
-    </div>
-
-</div>
-
-</body>
+    </body>
 
 </html>
