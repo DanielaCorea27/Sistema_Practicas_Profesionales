@@ -7,9 +7,11 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import sv.edu.itca.practicas.model.EmpresaAdmin;
 import sv.edu.itca.practicas.service.EmpresaAdminService;
+import sv.edu.itca.practicas.util.ReglaNegocioException;
 
 @WebServlet(
         name = "AdminEmpresasServlet",
@@ -17,11 +19,13 @@ import sv.edu.itca.practicas.service.EmpresaAdminService;
 )
 public class AdminEmpresasServlet extends HttpServlet {
 
+    private static final String FLASH_OK = "flashOk";
+    private static final String FLASH_ERROR = "flashError";
+
     private EmpresaAdminService service;
 
     @Override
     public void init() throws ServletException {
-
         service = new EmpresaAdminService();
     }
 
@@ -31,52 +35,23 @@ public class AdminEmpresasServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        String accion =
-                request.getParameter("accion");
-
-        if ("cambiarEstado".equals(accion)) {
-
-            try {
-
-                int id =
-                        Integer.parseInt(
-                                request.getParameter("id")
-                        );
-
-                service.cambiarEstado(id);
-
-            } catch (Exception e) {
-            }
-
-            response.sendRedirect(
-                    request.getContextPath()
-                    + "/admin/empresas"
-            );
-
+        if ("cambiarEstado".equals(request.getParameter("accion"))) {
+            cambiarEstado(request, response);
             return;
         }
 
-        request.setAttribute(
-                "empresas",
-                service.listarTodos()
-        );
+        HttpSession session = request.getSession();
+        request.setAttribute("mensajeOk", session.getAttribute(FLASH_OK));
+        request.setAttribute("mensajeError", session.getAttribute(FLASH_ERROR));
+        session.removeAttribute(FLASH_OK);
+        session.removeAttribute(FLASH_ERROR);
 
-        request.setAttribute(
-                "totalEmpresas",
-                service.contarTodos()
-        );
+        request.setAttribute("empresas", service.listarTodos());
+        request.setAttribute("totalEmpresas", service.contarTodos());
+        request.setAttribute("empresasActivas", service.contarActivas());
 
-        request.setAttribute(
-                "empresasActivas",
-                service.contarActivas()
-        );
-
-        request.getRequestDispatcher(
-                "/admin/empresas.jsp"
-        ).forward(
-                request,
-                response
-        );
+        request.getRequestDispatcher("/admin/empresas.jsp")
+                .forward(request, response);
     }
 
     @Override
@@ -87,30 +62,44 @@ public class AdminEmpresasServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        EmpresaAdmin empresa =
-                new EmpresaAdmin();
+        EmpresaAdmin empresa = new EmpresaAdmin();
+        empresa.setNombre(request.getParameter("nombre"));
+        empresa.setDescripcion(request.getParameter("descripcion"));
+        empresa.setDireccion(request.getParameter("direccion"));
+        empresa.setTelefono(request.getParameter("telefono"));
+        empresa.setCorreo(request.getParameter("correo"));
+        empresa.setSitioWeb(request.getParameter("sitioWeb"));
+        empresa.setContacto(request.getParameter("contacto"));
 
-        empresa.setNombre(
-                request.getParameter("nombre")
-        );
+        HttpSession session = request.getSession();
 
-        empresa.setContacto(
-                request.getParameter("contacto")
-        );
+        try {
+            service.guardar(empresa);
+            session.setAttribute(FLASH_OK, "Empresa registrada correctamente.");
+        } catch (ReglaNegocioException e) {
+            session.setAttribute(FLASH_ERROR, e.getMessage());
+        }
 
-        empresa.setTelefono(
-                request.getParameter("telefono")
-        );
+        response.sendRedirect(request.getContextPath() + "/admin/empresas");
+    }
 
-        empresa.setCorreo(
-                request.getParameter("correo")
-        );
+    private void cambiarEstado(
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws IOException {
 
-        service.guardar(empresa);
+        HttpSession session = request.getSession();
 
-        response.sendRedirect(
-                request.getContextPath()
-                + "/admin/empresas"
-        );
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            service.cambiarEstado(id);
+            session.setAttribute(FLASH_OK, "Estado actualizado.");
+        } catch (NumberFormatException e) {
+            session.setAttribute(FLASH_ERROR, "Empresa no válida.");
+        } catch (ReglaNegocioException e) {
+            session.setAttribute(FLASH_ERROR, e.getMessage());
+        }
+
+        response.sendRedirect(request.getContextPath() + "/admin/empresas");
     }
 }

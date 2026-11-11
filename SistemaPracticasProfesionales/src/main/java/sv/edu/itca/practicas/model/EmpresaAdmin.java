@@ -1,8 +1,4 @@
 package sv.edu.itca.practicas.model;
-/**
- *
- * @author danie
- */
 
 import java.io.Serializable;
 
@@ -12,28 +8,16 @@ public class EmpresaAdmin implements Serializable {
 
     private int id;
     private String nombre;
-    private String contacto;
+    private String descripcion;
+    private String direccion;
     private String telefono;
     private String correo;
-    private String estado;
+    private String sitioWeb;
+    private String contacto;
+    private boolean activo;
+    private int totalRepresentantes;
 
     public EmpresaAdmin() {
-    }
-
-    public EmpresaAdmin(
-            int id,
-            String nombre,
-            String contacto,
-            String telefono,
-            String correo,
-            String estado) {
-
-        this.id = id;
-        this.nombre = nombre;
-        this.contacto = contacto;
-        this.telefono = telefono;
-        this.correo = correo;
-        this.estado = estado;
     }
 
     public int getId() {
@@ -52,12 +36,20 @@ public class EmpresaAdmin implements Serializable {
         this.nombre = nombre;
     }
 
-    public String getContacto() {
-        return contacto;
+    public String getDescripcion() {
+        return descripcion;
     }
 
-    public void setContacto(String contacto) {
-        this.contacto = contacto;
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
+
+    public String getDireccion() {
+        return direccion;
+    }
+
+    public void setDireccion(String direccion) {
+        this.direccion = direccion;
     }
 
     public String getTelefono() {
@@ -76,11 +68,39 @@ public class EmpresaAdmin implements Serializable {
         this.correo = correo;
     }
 
-    public String getEstado() {
-        return estado;
+    public String getSitioWeb() {
+        return sitioWeb;
     }
 
-    public void setEstado(String estado) {
-        this.estado = estado;
+    public void setSitioWeb(String sitioWeb) {
+        this.sitioWeb = sitioWeb;
+    }
+
+    public String getContacto() {
+        return contacto;
+    }
+
+    public void setContacto(String contacto) {
+        this.contacto = contacto;
+    }
+
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
+    }
+
+    public String getEstado() {
+        return activo ? "ACTIVO" : "INACTIVO";
+    }
+
+    public int getTotalRepresentantes() {
+        return totalRepresentantes;
+    }
+
+    public void setTotalRepresentantes(int totalRepresentantes) {
+        this.totalRepresentantes = totalRepresentantes;
     }
 }

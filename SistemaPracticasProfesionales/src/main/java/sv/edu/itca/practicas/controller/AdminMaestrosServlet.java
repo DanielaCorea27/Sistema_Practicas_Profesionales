@@ -7,9 +7,11 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import sv.edu.itca.practicas.model.MaestroAdmin;
 import sv.edu.itca.practicas.service.MaestroAdminService;
+import sv.edu.itca.practicas.util.ReglaNegocioException;
 
 @WebServlet(
         name = "AdminMaestrosServlet",
@@ -17,11 +19,13 @@ import sv.edu.itca.practicas.service.MaestroAdminService;
 )
 public class AdminMaestrosServlet extends HttpServlet {
 
+    private static final String FLASH_OK = "flashOk";
+    private static final String FLASH_ERROR = "flashError";
+
     private MaestroAdminService service;
 
     @Override
     public void init() throws ServletException {
-
         service = new MaestroAdminService();
     }
 
@@ -31,37 +35,23 @@ public class AdminMaestrosServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        String accion =
-                request.getParameter("accion");
-
-        if ("cambiarEstado".equals(accion)) {
-
+        if ("cambiarEstado".equals(request.getParameter("accion"))) {
             cambiarEstado(request, response);
-
             return;
         }
 
-        request.setAttribute(
-                "maestros",
-                service.listarTodos()
-        );
+        HttpSession session = request.getSession();
+        request.setAttribute("mensajeOk", session.getAttribute(FLASH_OK));
+        request.setAttribute("mensajeError", session.getAttribute(FLASH_ERROR));
+        session.removeAttribute(FLASH_OK);
+        session.removeAttribute(FLASH_ERROR);
 
-        request.setAttribute(
-                "totalMaestros",
-                service.contarTodos()
-        );
+        request.setAttribute("maestros", service.listarTodos());
+        request.setAttribute("totalMaestros", service.contarTodos());
+        request.setAttribute("maestrosActivos", service.contarActivos());
 
-        request.setAttribute(
-                "maestrosActivos",
-                service.contarActivos()
-        );
-
-        request.getRequestDispatcher(
-                "/admin/maestros.jsp"
-        ).forward(
-                request,
-                response
-        );
+        request.getRequestDispatcher("/admin/maestros.jsp")
+                .forward(request, response);
     }
 
     @Override
@@ -72,28 +62,25 @@ public class AdminMaestrosServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        String nombre =
-                request.getParameter("nombre");
+        MaestroAdmin maestro = new MaestroAdmin();
+        maestro.setNombre(request.getParameter("nombre"));
+        maestro.setApellido(request.getParameter("apellido"));
+        maestro.setCorreo(request.getParameter("correo"));
+        maestro.setPassword(request.getParameter("password"));
+        maestro.setCodigoEmpleado(request.getParameter("codigoEmpleado"));
+        maestro.setEspecialidad(request.getParameter("especialidad"));
+        maestro.setTelefono(request.getParameter("telefono"));
 
-        String usuario =
-                request.getParameter("usuario");
+        HttpSession session = request.getSession();
 
-        String especialidad =
-                request.getParameter("especialidad");
+        try {
+            service.guardar(maestro);
+            session.setAttribute(FLASH_OK, "Maestro registrado correctamente.");
+        } catch (ReglaNegocioException e) {
+            session.setAttribute(FLASH_ERROR, e.getMessage());
+        }
 
-        MaestroAdmin maestro =
-                new MaestroAdmin();
-
-        maestro.setNombre(nombre);
-        maestro.setUsuario(usuario);
-        maestro.setEspecialidad(especialidad);
-
-        service.guardar(maestro);
-
-        response.sendRedirect(
-                request.getContextPath()
-                + "/admin/maestros"
-        );
+        response.sendRedirect(request.getContextPath() + "/admin/maestros");
     }
 
     private void cambiarEstado(
@@ -101,21 +88,18 @@ public class AdminMaestrosServlet extends HttpServlet {
             HttpServletResponse response)
             throws IOException {
 
+        HttpSession session = request.getSession();
+
         try {
-
-            int id =
-                    Integer.parseInt(
-                            request.getParameter("id")
-                    );
-
+            int id = Integer.parseInt(request.getParameter("id"));
             service.cambiarEstado(id);
-
-        } catch (Exception e) {
+            session.setAttribute(FLASH_OK, "Estado actualizado.");
+        } catch (NumberFormatException e) {
+            session.setAttribute(FLASH_ERROR, "Maestro no válido.");
+        } catch (ReglaNegocioException e) {
+            session.setAttribute(FLASH_ERROR, e.getMessage());
         }
 
-        response.sendRedirect(
-                request.getContextPath()
-                + "/admin/maestros"
-        );
+        response.sendRedirect(request.getContextPath() + "/admin/maestros");
     }
 }

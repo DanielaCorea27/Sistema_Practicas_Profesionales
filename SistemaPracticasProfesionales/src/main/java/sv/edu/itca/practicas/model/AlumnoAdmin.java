@@ -7,29 +7,18 @@ public class AlumnoAdmin implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private int id;
+    private int idUsuario;
     private String nombre;
+    private String apellido;
+    private String correo;
+    private String password;
     private String carnet;
+    private int idCarrera;
     private String carrera;
-    private String usuario;
-    private String estado;
+    private String telefono;
+    private boolean activo;
 
     public AlumnoAdmin() {
-    }
-
-    public AlumnoAdmin(
-            int id,
-            String nombre,
-            String carnet,
-            String carrera,
-            String usuario,
-            String estado) {
-
-        this.id = id;
-        this.nombre = nombre;
-        this.carnet = carnet;
-        this.carrera = carrera;
-        this.usuario = usuario;
-        this.estado = estado;
     }
 
     public int getId() {
@@ -40,12 +29,49 @@ public class AlumnoAdmin implements Serializable {
         this.id = id;
     }
 
+    public int getIdUsuario() {
+        return idUsuario;
+    }
+
+    public void setIdUsuario(int idUsuario) {
+        this.idUsuario = idUsuario;
+    }
+
     public String getNombre() {
         return nombre;
     }
 
     public void setNombre(String nombre) {
         this.nombre = nombre;
+    }
+
+    public String getApellido() {
+        return apellido;
+    }
+
+    public void setApellido(String apellido) {
+        this.apellido = apellido;
+    }
+
+    public String getNombreCompleto() {
+        return (nombre == null ? "" : nombre)
+                + (apellido == null || apellido.isEmpty() ? "" : " " + apellido);
+    }
+
+    public String getCorreo() {
+        return correo;
+    }
+
+    public void setCorreo(String correo) {
+        this.correo = correo;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getCarnet() {
@@ -56,6 +82,14 @@ public class AlumnoAdmin implements Serializable {
         this.carnet = carnet;
     }
 
+    public int getIdCarrera() {
+        return idCarrera;
+    }
+
+    public void setIdCarrera(int idCarrera) {
+        this.idCarrera = idCarrera;
+    }
+
     public String getCarrera() {
         return carrera;
     }
@@ -64,19 +98,23 @@ public class AlumnoAdmin implements Serializable {
         this.carrera = carrera;
     }
 
-    public String getUsuario() {
-        return usuario;
+    public String getTelefono() {
+        return telefono;
     }
 
-    public void setUsuario(String usuario) {
-        this.usuario = usuario;
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
+    }
+
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
     }
 
     public String getEstado() {
-        return estado;
-    }
-
-    public void setEstado(String estado) {
-        this.estado = estado;
+        return activo ? "ACTIVO" : "INACTIVO";
     }
 }

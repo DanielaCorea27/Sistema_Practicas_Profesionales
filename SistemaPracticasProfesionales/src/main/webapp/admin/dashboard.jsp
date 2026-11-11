@@ -1,37 +1,21 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@page import="sv.edu.itca.practicas.model.Usuario"%>
-<%@page import="sv.edu.itca.practicas.service.UsuarioAdminService"%>
-<%@page import="sv.edu.itca.practicas.model.UsuarioAdmin"%>
-<%@page import="java.util.List"%>
 
 <%
+    if (request.getAttribute("totalUsuarios") == null) {
+        response.sendRedirect(request.getContextPath() + "/admin/dashboard");
+        return;
+    }
+
     Usuario usuario = (Usuario) session.getAttribute("usuario");
 
-    UsuarioAdminService usuarioService =
-            new UsuarioAdminService();
-
-    List<UsuarioAdmin> usuarios =
-            usuarioService.listarTodos();
-
-    int totalUsuarios =
-            usuarioService.contarTodos();
-
-    int usuariosActivos =
-            usuarioService.contarActivos();
-
-    int alumnos = 0;
-    int maestros = 0;
-
-    for (UsuarioAdmin u : usuarios) {
-
-        if ("ALUMNO".equalsIgnoreCase(u.getRol())) {
-            alumnos++;
-        }
-
-        if ("MAESTRO".equalsIgnoreCase(u.getRol())) {
-            maestros++;
-        }
-    }
+    int totalUsuarios = (Integer) request.getAttribute("totalUsuarios");
+    int usuariosActivos = (Integer) request.getAttribute("usuariosActivos");
+    int alumnos = (Integer) request.getAttribute("totalAlumnos");
+    int maestros = (Integer) request.getAttribute("totalMaestros");
+    int totalEmpresas = (Integer) request.getAttribute("totalEmpresas");
+    int empresasActivas = (Integer) request.getAttribute("empresasActivas");
+    int totalCarreras = (Integer) request.getAttribute("totalCarreras");
 %>
 
 <!DOCTYPE html>
@@ -356,12 +340,42 @@
                 🏢
             </div>
 
+            <div class="stat-number">
+                <%= totalEmpresas %>
+            </div>
+
             <h3>
                 Empresas
             </h3>
 
             <p class="stat-title">
-                Administrar empresas para prácticas profesionales.
+                Empresas para prácticas profesionales
+            </p>
+
+            <span class="badge-activos">
+                <%= empresasActivas %> activas
+            </span>
+
+        </a>
+
+
+        <a href="${pageContext.request.contextPath}/admin/carreras"
+           class="stat-card">
+
+            <div class="stat-icon">
+                🎓
+            </div>
+
+            <div class="stat-number">
+                <%= totalCarreras %>
+            </div>
+
+            <h3>
+                Carreras
+            </h3>
+
+            <p class="stat-title">
+                Carreras y horas requeridas
             </p>
 
         </a>

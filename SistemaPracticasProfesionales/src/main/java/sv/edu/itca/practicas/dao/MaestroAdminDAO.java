@@ -1,116 +1,201 @@
 package sv.edu.itca.practicas.dao;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 import sv.edu.itca.practicas.model.MaestroAdmin;
+import sv.edu.itca.practicas.model.Rol;
+import sv.edu.itca.practicas.util.Conexion;
 
 public class MaestroAdminDAO {
 
-    private static final List<MaestroAdmin> maestros =
-            new ArrayList<>();
+    private static final String SELECT =
+            "SELECT m.id_maestro, m.id_usuario, m.codigo_empleado, m.especialidad, m.telefono, "
+            + "u.nombre, u.apellido, u.correo, u.estado "
+            + "FROM maestros m "
+            + "JOIN usuarios u ON u.id_usuario = m.id_usuario ";
 
-    private static int siguienteId = 4;
+    private MaestroAdmin mapear(ResultSet rs) throws SQLException {
 
-    static {
-
-        maestros.add(
-                new MaestroAdmin(
-                        1,
-                        "Maestro Principal",
-                        "maestro",
-                        "Desarrollo de Software",
-                        "ACTIVO"
-                )
-        );
-
-        maestros.add(
-                new MaestroAdmin(
-                        2,
-                        "Carlos Hernández",
-                        "carlos",
-                        "Bases de Datos",
-                        "ACTIVO"
-                )
-        );
-
-        maestros.add(
-                new MaestroAdmin(
-                        3,
-                        "María López",
-                        "maria",
-                        "Programación",
-                        "ACTIVO"
-                )
-        );
+        MaestroAdmin m = new MaestroAdmin();
+        m.setId(rs.getInt("id_maestro"));
+        m.setIdUsuario(rs.getInt("id_usuario"));
+        m.setNombre(rs.getString("nombre"));
+        m.setApellido(rs.getString("apellido"));
+        m.setCorreo(rs.getString("correo"));
+        m.setCodigoEmpleado(rs.getString("codigo_empleado"));
+        m.setEspecialidad(rs.getString("especialidad"));
+        m.setTelefono(rs.getString("telefono"));
+        m.setActivo(rs.getBoolean("estado"));
+        return m;
     }
 
     public List<MaestroAdmin> listarTodos() {
 
-        return new ArrayList<>(maestros);
+        List<MaestroAdmin> lista = new ArrayList<>();
+
+        try (Connection con = Conexion.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(SELECT + "ORDER BY m.id_maestro");
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                lista.add(mapear(rs));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return lista;
     }
 
     public MaestroAdmin buscarPorId(int id) {
 
-        for (MaestroAdmin maestro : maestros) {
+        try (Connection con = Conexion.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(SELECT + "WHERE m.id_maestro = ?")) {
 
-            if (maestro.getId() == id) {
-                return maestro;
+            ps.setInt(1, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? mapear(rs) : null;
             }
-        }
 
-        return null;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public boolean existeCorreo(String correo) {
+        return existe("SELECT COUNT(*) FROM usuarios WHERE correo = ?", correo);
+    }
+
+    public boolean existeCodigo(String codigo) {
+        return existe("SELECT COUNT(*) FROM maestros WHERE codigo_empleado = ?", codigo);
     }
 
     public boolean insertar(MaestroAdmin maestro) {
 
-        maestro.setId(siguienteId++);
+        try (Connection con = Conexion.obtenerConexion()) {
 
-        maestros.add(maestro);
+            con.setAutoCommit(false);
 
-        return true;
-    }
+            try {
+                int idUsuario = insertarUsuario(con, maestro);
 
-    public boolean cambiarEstado(int id) {
+                try (PreparedStatement ps = con.prepareStatement(
+                        "INSERT INTO maestros (id_usuario, codigo_empleado, especialidad, telefono) "
+                        + "VALUES (?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
 
-        MaestroAdmin maestro =
-                buscarPorId(id);
+                    ps.setInt(1, idUsuario);
+                    ps.setString(2, maestro.getCodigoEmpleado());
+                    ps.setString(3, maestro.getEspecialidad());
+                    ps.setString(4, maestro.getTelefono());
+                    ps.executeUpdate();
 
-        if (maestro == null) {
+                    try (ResultSet keys = ps.getGeneratedKeys()) {
+                        if (keys.next()) {
+                            maestro.setId(keys.getInt(1));
+                        }
+                    }
+                }
+
+                con.commit();
+                maestro.setIdUsuario(idUsuario);
+                maestro.setActivo(true);
+                return true;
+
+            } catch (SQLException e) {
+                con.rollback();
+                throw e;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
             return false;
         }
+    }
 
-        if ("ACTIVO".equalsIgnoreCase(
-                maestro.getEstado())) {
+    public boolean cambiarEstado(int idMaestro) {
 
-            maestro.setEstado("INACTIVO");
+        try (Connection con = Conexion.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(
+                     "UPDATE usuarios u JOIN maestros m ON m.id_usuario = u.id_usuario "
+                     + "SET u.estado = NOT u.estado WHERE m.id_maestro = ?")) {
 
-        } else {
+            ps.setInt(1, idMaestro);
+            return ps.executeUpdate() > 0;
 
-            maestro.setEstado("ACTIVO");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
-
-        return true;
     }
 
     public int contarTodos() {
-
-        return maestros.size();
+        return contar("SELECT COUNT(*) FROM maestros");
     }
 
     public int contarActivos() {
+        return contar("SELECT COUNT(*) FROM maestros m "
+                + "JOIN usuarios u ON u.id_usuario = m.id_usuario WHERE u.estado = 1");
+    }
 
-        int cantidad = 0;
+    private int insertarUsuario(Connection con, MaestroAdmin maestro) throws SQLException {
 
-        for (MaestroAdmin maestro : maestros) {
+        try (PreparedStatement ps = con.prepareStatement(
+                "INSERT INTO usuarios (id_rol, nombre, apellido, correo, password, estado) "
+                + "VALUES (?, ?, ?, ?, SHA2(?, 256), 1)", Statement.RETURN_GENERATED_KEYS)) {
 
-            if ("ACTIVO".equalsIgnoreCase(
-                    maestro.getEstado())) {
+            ps.setInt(1, Rol.MAESTRO.getId());
+            ps.setString(2, maestro.getNombre());
+            ps.setString(3, maestro.getApellido());
+            ps.setString(4, maestro.getCorreo());
+            ps.setString(5, maestro.getPassword());
+            ps.executeUpdate();
 
-                cantidad++;
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (!keys.next()) {
+                    throw new SQLException("No se generó el id del usuario.");
+                }
+                return keys.getInt(1);
             }
         }
+    }
 
-        return cantidad;
+    private boolean existe(String sql, String valor) {
+
+        try (Connection con = Conexion.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, valor);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() && rs.getInt(1) > 0;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private int contar(String sql) {
+
+        try (Connection con = Conexion.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            return rs.next() ? rs.getInt(1) : 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 0;
+        }
     }
 }

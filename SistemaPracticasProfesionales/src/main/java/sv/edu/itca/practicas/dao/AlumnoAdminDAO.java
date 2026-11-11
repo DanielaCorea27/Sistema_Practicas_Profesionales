@@ -1,119 +1,221 @@
 package sv.edu.itca.practicas.dao;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 import sv.edu.itca.practicas.model.AlumnoAdmin;
+import sv.edu.itca.practicas.model.Rol;
+import sv.edu.itca.practicas.util.Conexion;
 
 public class AlumnoAdminDAO {
 
-    private static final List<AlumnoAdmin> alumnos =
-            new ArrayList<>();
+    private static final String SELECT =
+            "SELECT a.id_alumno, a.id_usuario, a.carnet, a.telefono, a.id_carrera, "
+            + "c.nombre AS carrera, u.nombre, u.apellido, u.correo, u.estado "
+            + "FROM alumnos a "
+            + "JOIN usuarios u ON u.id_usuario = a.id_usuario "
+            + "JOIN carreras c ON c.id_carrera = a.id_carrera ";
 
-    private static int siguienteId = 4;
+    private AlumnoAdmin mapear(ResultSet rs) throws SQLException {
 
-    static {
-
-        alumnos.add(
-                new AlumnoAdmin(
-                        1,
-                        "Andersson Cienfuegos",
-                        "20240001",
-                        "Ingeniería en Desarrollo de Software",
-                        "andersson",
-                        "ACTIVO"
-                )
-        );
-
-        alumnos.add(
-                new AlumnoAdmin(
-                        2,
-                        "Rodrigo Martínez",
-                        "20240002",
-                        "Ingeniería en Desarrollo de Software",
-                        "rodrigo",
-                        "ACTIVO"
-                )
-        );
-
-        alumnos.add(
-                new AlumnoAdmin(
-                        3,
-                        "Yanci López",
-                        "20240003",
-                        "Ingeniería en Desarrollo de Software",
-                        "yanci",
-                        "ACTIVO"
-                )
-        );
+        AlumnoAdmin a = new AlumnoAdmin();
+        a.setId(rs.getInt("id_alumno"));
+        a.setIdUsuario(rs.getInt("id_usuario"));
+        a.setNombre(rs.getString("nombre"));
+        a.setApellido(rs.getString("apellido"));
+        a.setCorreo(rs.getString("correo"));
+        a.setCarnet(rs.getString("carnet"));
+        a.setTelefono(rs.getString("telefono"));
+        a.setIdCarrera(rs.getInt("id_carrera"));
+        a.setCarrera(rs.getString("carrera"));
+        a.setActivo(rs.getBoolean("estado"));
+        return a;
     }
 
     public List<AlumnoAdmin> listarTodos() {
 
-        return new ArrayList<>(alumnos);
+        List<AlumnoAdmin> lista = new ArrayList<>();
+
+        try (Connection con = Conexion.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(SELECT + "ORDER BY a.id_alumno");
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                lista.add(mapear(rs));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return lista;
     }
 
     public AlumnoAdmin buscarPorId(int id) {
 
-        for (AlumnoAdmin alumno : alumnos) {
+        try (Connection con = Conexion.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(SELECT + "WHERE a.id_alumno = ?")) {
 
-            if (alumno.getId() == id) {
-                return alumno;
+            ps.setInt(1, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? mapear(rs) : null;
             }
-        }
 
-        return null;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public boolean existeCorreo(String correo) {
+        return existe("SELECT COUNT(*) FROM usuarios WHERE correo = ?", correo);
+    }
+
+    public boolean existeCarnet(String carnet) {
+        return existe("SELECT COUNT(*) FROM alumnos WHERE carnet = ?", carnet);
+    }
+
+    public boolean existeCarrera(int idCarrera) {
+
+        try (Connection con = Conexion.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(
+                     "SELECT COUNT(*) FROM carreras WHERE id_carrera = ?")) {
+
+            ps.setInt(1, idCarrera);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() && rs.getInt(1) > 0;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public boolean insertar(AlumnoAdmin alumno) {
 
-        alumno.setId(siguienteId++);
+        try (Connection con = Conexion.obtenerConexion()) {
 
-        alumnos.add(alumno);
+            con.setAutoCommit(false);
 
-        return true;
-    }
+            try {
+                int idUsuario = insertarUsuario(con, alumno);
 
-    public boolean cambiarEstado(int id) {
+                try (PreparedStatement ps = con.prepareStatement(
+                        "INSERT INTO alumnos (id_usuario, id_carrera, carnet, telefono) "
+                        + "VALUES (?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
 
-        AlumnoAdmin alumno =
-                buscarPorId(id);
+                    ps.setInt(1, idUsuario);
+                    ps.setInt(2, alumno.getIdCarrera());
+                    ps.setString(3, alumno.getCarnet());
+                    ps.setString(4, alumno.getTelefono());
+                    ps.executeUpdate();
 
-        if (alumno == null) {
+                    try (ResultSet keys = ps.getGeneratedKeys()) {
+                        if (keys.next()) {
+                            alumno.setId(keys.getInt(1));
+                        }
+                    }
+                }
+
+                con.commit();
+                alumno.setIdUsuario(idUsuario);
+                alumno.setActivo(true);
+                return true;
+
+            } catch (SQLException e) {
+                con.rollback();
+                throw e;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
             return false;
         }
+    }
 
-        if ("ACTIVO".equalsIgnoreCase(
-                alumno.getEstado())) {
+    public boolean cambiarEstado(int idAlumno) {
 
-            alumno.setEstado("INACTIVO");
+        try (Connection con = Conexion.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(
+                     "UPDATE usuarios u JOIN alumnos a ON a.id_usuario = u.id_usuario "
+                     + "SET u.estado = NOT u.estado WHERE a.id_alumno = ?")) {
 
-        } else {
+            ps.setInt(1, idAlumno);
+            return ps.executeUpdate() > 0;
 
-            alumno.setEstado("ACTIVO");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
-
-        return true;
     }
 
     public int contarTodos() {
-
-        return alumnos.size();
+        return contar("SELECT COUNT(*) FROM alumnos");
     }
 
     public int contarActivos() {
+        return contar("SELECT COUNT(*) FROM alumnos a "
+                + "JOIN usuarios u ON u.id_usuario = a.id_usuario WHERE u.estado = 1");
+    }
 
-        int cantidad = 0;
+    private int insertarUsuario(Connection con, AlumnoAdmin alumno) throws SQLException {
 
-        for (AlumnoAdmin alumno : alumnos) {
+        try (PreparedStatement ps = con.prepareStatement(
+                "INSERT INTO usuarios (id_rol, nombre, apellido, correo, password, estado) "
+                + "VALUES (?, ?, ?, ?, SHA2(?, 256), 1)", Statement.RETURN_GENERATED_KEYS)) {
 
-            if ("ACTIVO".equalsIgnoreCase(
-                    alumno.getEstado())) {
+            ps.setInt(1, Rol.ALUMNO.getId());
+            ps.setString(2, alumno.getNombre());
+            ps.setString(3, alumno.getApellido());
+            ps.setString(4, alumno.getCorreo());
+            ps.setString(5, alumno.getPassword());
+            ps.executeUpdate();
 
-                cantidad++;
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (!keys.next()) {
+                    throw new SQLException("No se generó el id del usuario.");
+                }
+                return keys.getInt(1);
             }
         }
+    }
 
-        return cantidad;
+    private boolean existe(String sql, String valor) {
+
+        try (Connection con = Conexion.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, valor);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() && rs.getInt(1) > 0;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private int contar(String sql) {
+
+        try (Connection con = Conexion.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            return rs.next() ? rs.getInt(1) : 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 0;
+        }
     }
 }
