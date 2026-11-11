@@ -7,8 +7,10 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import sv.edu.itca.practicas.service.CarreraAdminService;
+import sv.edu.itca.practicas.util.ReglaNegocioException;
 
 @WebServlet(
         name = "AdminCarrerasServlet",
@@ -16,11 +18,13 @@ import sv.edu.itca.practicas.service.CarreraAdminService;
 )
 public class AdminCarrerasServlet extends HttpServlet {
 
+    private static final String FLASH_OK = "flashOk";
+    private static final String FLASH_ERROR = "flashError";
+
     private CarreraAdminService service;
 
     @Override
     public void init() throws ServletException {
-
         service = new CarreraAdminService();
     }
 
@@ -30,47 +34,23 @@ public class AdminCarrerasServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        String accion =
-                request.getParameter("accion");
-
-        if ("eliminar".equals(accion)) {
-
-            try {
-
-                int id =
-                        Integer.parseInt(
-                                request.getParameter("id")
-                        );
-
-                service.eliminar(id);
-
-            } catch (Exception e) {
-            }
-
-            response.sendRedirect(
-                    request.getContextPath()
-                    + "/admin/carreras"
-            );
-
+        if ("eliminar".equals(request.getParameter("accion"))) {
+            eliminar(request, response);
             return;
         }
 
-        request.setAttribute(
-                "carreras",
-                service.listarTodos()
-        );
+        HttpSession session = request.getSession();
+        request.setAttribute("mensajeOk", session.getAttribute(FLASH_OK));
+        request.setAttribute("mensajeError", session.getAttribute(FLASH_ERROR));
+        session.removeAttribute(FLASH_OK);
+        session.removeAttribute(FLASH_ERROR);
 
-        request.setAttribute(
-                "totalCarreras",
-                service.contarTodos()
-        );
+        request.setAttribute("carreras", service.listarTodos());
+        request.setAttribute("tipos", service.listarTipos());
+        request.setAttribute("totalCarreras", service.contarTodos());
 
-        request.getRequestDispatcher(
-                "/admin/carreras.jsp"
-        ).forward(
-                request,
-                response
-        );
+        request.getRequestDispatcher("/admin/carreras.jsp")
+                .forward(request, response);
     }
 
     @Override
@@ -81,28 +61,38 @@ public class AdminCarrerasServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        String nombre =
-                request.getParameter("nombre");
-
-        String horasParametro =
-                request.getParameter("horas");
+        HttpSession session = request.getSession();
 
         try {
-
-            double horas =
-                    Double.parseDouble(horasParametro);
-
-            service.guardar(
-                    nombre,
-                    horas
-            );
-
-        } catch (Exception e) {
+            int idTipo = Integer.parseInt(request.getParameter("idTipoCarrera"));
+            service.guardar(request.getParameter("nombre"), idTipo);
+            session.setAttribute(FLASH_OK, "Carrera registrada correctamente.");
+        } catch (NumberFormatException e) {
+            session.setAttribute(FLASH_ERROR, "Selecciona un tipo de carrera.");
+        } catch (ReglaNegocioException e) {
+            session.setAttribute(FLASH_ERROR, e.getMessage());
         }
 
-        response.sendRedirect(
-                request.getContextPath()
-                + "/admin/carreras"
-        );
+        response.sendRedirect(request.getContextPath() + "/admin/carreras");
+    }
+
+    private void eliminar(
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws IOException {
+
+        HttpSession session = request.getSession();
+
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            service.eliminar(id);
+            session.setAttribute(FLASH_OK, "Carrera eliminada.");
+        } catch (NumberFormatException e) {
+            session.setAttribute(FLASH_ERROR, "Carrera no válida.");
+        } catch (ReglaNegocioException e) {
+            session.setAttribute(FLASH_ERROR, e.getMessage());
+        }
+
+        response.sendRedirect(request.getContextPath() + "/admin/carreras");
     }
 }

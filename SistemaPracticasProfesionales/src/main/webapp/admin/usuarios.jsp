@@ -1,6 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@page import="java.util.List"%>
 <%@page import="sv.edu.itca.practicas.model.UsuarioAdmin"%>
+<%@page import="sv.edu.itca.practicas.util.Html"%>
 
 <!DOCTYPE html>
 
@@ -88,6 +89,20 @@
 
     </div>
 
+    <%
+        String mensajeOk = (String) request.getAttribute("mensajeOk");
+        String mensajeError = (String) request.getAttribute("mensajeError");
+        int idUsuarioSesion = request.getAttribute("idUsuarioSesion") == null
+                ? -1 : (Integer) request.getAttribute("idUsuarioSesion");
+    %>
+
+    <% if (mensajeOk != null) { %>
+        <div class="alert alert-success"><%=Html.esc(mensajeOk)%></div>
+    <% } %>
+
+    <% if (mensajeError != null) { %>
+        <div class="alert alert-danger"><%=Html.esc(mensajeError)%></div>
+    <% } %>
 
     <div class="row g-4 mb-4">
 
@@ -100,15 +115,12 @@
                 </div>
 
                 <div class="fs-2 fw-bold">
-
                     <%=request.getAttribute("totalUsuarios")%>
-
                 </div>
 
             </div>
 
         </div>
-
 
         <div class="col-md-6">
 
@@ -119,9 +131,7 @@
                 </div>
 
                 <div class="fs-2 fw-bold text-success">
-
                     <%=request.getAttribute("usuariosActivos")%>
-
                 </div>
 
             </div>
@@ -133,9 +143,13 @@
 
     <div class="card p-4 mb-4">
 
-        <h5 class="fw-bold mb-3">
-            Crear usuario
+        <h5 class="fw-bold mb-1">
+            Crear administrador
         </h5>
+
+        <p class="text-muted small mb-3">
+            Los alumnos y maestros se crean desde sus propios módulos.
+        </p>
 
         <form
             method="POST"
@@ -143,63 +157,28 @@
 
             <div class="row">
 
-                <div class="col-md-4 mb-3">
-
-                    <label class="form-label">
-                        Nombre
-                    </label>
-
-                    <input
-                        type="text"
-                        name="nombre"
-                        class="form-control"
-                        required>
-
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" name="nombre" class="form-control"
+                           maxlength="80" required>
                 </div>
 
-                <div class="col-md-4 mb-3">
-
-                    <label class="form-label">
-                        Usuario
-                    </label>
-
-                    <input
-                        type="text"
-                        name="usuario"
-                        class="form-control"
-                        required>
-
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Apellido</label>
+                    <input type="text" name="apellido" class="form-control"
+                           maxlength="80" required>
                 </div>
 
-                <div class="col-md-4 mb-3">
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Correo</label>
+                    <input type="email" name="correo" class="form-control"
+                           maxlength="120" required>
+                </div>
 
-                    <label class="form-label">
-                        Rol
-                    </label>
-
-                    <select
-                        name="rol"
-                        class="form-select"
-                        required>
-
-                        <option value="">
-                            Seleccionar
-                        </option>
-
-                        <option value="ALUMNO">
-                            Alumno
-                        </option>
-
-                        <option value="MAESTRO">
-                            Maestro
-                        </option>
-
-                        <option value="ADMIN">
-                            Administrador
-                        </option>
-
-                    </select>
-
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Contraseña</label>
+                    <input type="password" name="password" class="form-control"
+                           minlength="8" required>
                 </div>
 
             </div>
@@ -207,9 +186,7 @@
             <button
                 type="submit"
                 class="btn btn-primary btn-rounded">
-
-                Crear usuario
-
+                Crear administrador
             </button>
 
         </form>
@@ -220,11 +197,7 @@
     <div class="card">
 
         <div class="card-header bg-white p-3">
-
-            <h5 class="mb-0">
-                Usuarios registrados
-            </h5>
-
+            <h5 class="mb-0">Usuarios registrados</h5>
         </div>
 
         <div class="card-body">
@@ -234,88 +207,59 @@
                 <table class="table table-hover align-middle">
 
                     <thead>
-
                         <tr>
-
                             <th>ID</th>
                             <th>Nombre</th>
-                            <th>Usuario</th>
+                            <th>Correo</th>
                             <th>Rol</th>
                             <th>Estado</th>
                             <th>Acción</th>
-
                         </tr>
-
                     </thead>
 
                     <tbody>
 
                     <%
                         List<UsuarioAdmin> usuarios =
-                                (List<UsuarioAdmin>)
-                                request.getAttribute("usuarios");
+                                (List<UsuarioAdmin>) request.getAttribute("usuarios");
 
-                        if (usuarios != null
-                                && !usuarios.isEmpty()) {
+                        if (usuarios != null && !usuarios.isEmpty()) {
 
                             for (UsuarioAdmin usuario : usuarios) {
                     %>
 
                         <tr>
 
+                            <td><%=usuario.getId()%></td>
+
                             <td>
-                                <%=usuario.getId()%>
+                                <strong><%=Html.esc(usuario.getNombreCompleto())%></strong>
+                            </td>
+
+                            <td><%=Html.esc(usuario.getCorreo())%></td>
+
+                            <td>
+                                <span class="badge bg-primary"><%=usuario.getRol()%></span>
                             </td>
 
                             <td>
-                                <strong>
-                                    <%=usuario.getNombre()%>
-                                </strong>
-                            </td>
-
-                            <td>
-                                <%=usuario.getUsuario()%>
-                            </td>
-
-                            <td>
-
-                                <span class="badge bg-primary">
-
-                                    <%=usuario.getRol()%>
-
-                                </span>
-
-                            </td>
-
-                            <td>
-
-                                <% if ("ACTIVO".equalsIgnoreCase(
-                                        usuario.getEstado())) { %>
-
-                                    <span class="badge bg-success">
-                                        ACTIVO
-                                    </span>
-
+                                <% if (usuario.isActivo()) { %>
+                                    <span class="badge bg-success">ACTIVO</span>
                                 <% } else { %>
-
-                                    <span class="badge bg-danger">
-                                        INACTIVO
-                                    </span>
-
+                                    <span class="badge bg-danger">INACTIVO</span>
                                 <% } %>
-
                             </td>
 
                             <td>
-
-                                <a
-                                    href="<%=request.getContextPath()%>/admin/usuarios?accion=cambiarEstado&id=<%=usuario.getId()%>"
-                                    class="btn btn-outline-secondary btn-sm">
-
-                                    Cambiar estado
-
-                                </a>
-
+                                <% if (usuario.getId() == idUsuarioSesion) { %>
+                                    <span class="text-muted small">Tu usuario</span>
+                                <% } else { %>
+                                    <a
+                                        href="<%=request.getContextPath()%>/admin/usuarios?accion=cambiarEstado&id=<%=usuario.getId()%>"
+                                        class="btn btn-outline-secondary btn-sm">
+                                        <%=usuario.isActivo() ? "Desactivar" : "Activar"%>
+                                    </a>
+                                <% } %>
                             </td>
 
                         </tr>
@@ -327,15 +271,9 @@
                     %>
 
                         <tr>
-
-                            <td
-                                colspan="6"
-                                class="text-center text-muted py-4">
-
+                            <td colspan="6" class="text-center text-muted py-4">
                                 No hay usuarios registrados.
-
                             </td>
-
                         </tr>
 
                     <%

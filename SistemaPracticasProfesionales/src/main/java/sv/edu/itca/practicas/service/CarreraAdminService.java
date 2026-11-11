@@ -1,8 +1,11 @@
 package sv.edu.itca.practicas.service;
 
 import java.util.List;
+
 import sv.edu.itca.practicas.dao.CarreraAdminDAO;
 import sv.edu.itca.practicas.model.Carrera;
+import sv.edu.itca.practicas.model.TipoCarrera;
+import sv.edu.itca.practicas.util.ReglaNegocioException;
 
 public class CarreraAdminService {
 
@@ -16,35 +19,55 @@ public class CarreraAdminService {
         return carreraDAO.listarTodos();
     }
 
+    public List<TipoCarrera> listarTipos() {
+        return carreraDAO.listarTipos();
+    }
+
     public Carrera buscarPorId(int id) {
         return carreraDAO.buscarPorId(id);
     }
 
-    public boolean guardar(String nombre, double horas) {
+    public void guardar(String nombre, int idTipoCarrera) throws ReglaNegocioException {
 
-        if (nombre == null || nombre.trim().isEmpty()) {
-            return false;
+        String limpio = nombre == null ? "" : nombre.trim();
+
+        if (limpio.isEmpty()) {
+            throw new ReglaNegocioException("El nombre de la carrera es obligatorio.");
         }
 
-        if (horas <= 0) {
-            return false;
+        if (limpio.length() > 150) {
+            throw new ReglaNegocioException("El nombre admite máximo 150 caracteres.");
+        }
+
+        if (!carreraDAO.existeTipo(idTipoCarrera)) {
+            throw new ReglaNegocioException("Selecciona un tipo de carrera válido.");
+        }
+
+        if (carreraDAO.existeNombre(limpio)) {
+            throw new ReglaNegocioException("Ya existe una carrera con ese nombre.");
         }
 
         Carrera carrera = new Carrera();
+        carrera.setNombre(limpio);
+        carrera.setIdTipoCarrera(idTipoCarrera);
 
-        carrera.setNombre(nombre.trim());
-        carrera.setHorasRequeridas(horas);
-
-        return carreraDAO.insertar(carrera);
+        if (!carreraDAO.insertar(carrera)) {
+            throw new ReglaNegocioException("No se pudo guardar la carrera. Intenta de nuevo.");
+        }
     }
 
-    public boolean eliminar(int id) {
+    public void eliminar(int id) throws ReglaNegocioException {
 
-        if (id <= 0) {
-            return false;
+        int alumnos = carreraDAO.contarAlumnos(id);
+
+        if (alumnos > 0) {
+            throw new ReglaNegocioException(
+                    "No se puede eliminar: la carrera tiene " + alumnos + " alumno(s) inscrito(s).");
         }
 
-        return carreraDAO.eliminar(id);
+        if (!carreraDAO.eliminar(id)) {
+            throw new ReglaNegocioException("No se encontró la carrera.");
+        }
     }
 
     public int contarTodos() {

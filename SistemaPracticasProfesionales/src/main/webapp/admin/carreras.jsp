@@ -1,6 +1,8 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@page import="sv.edu.itca.practicas.model.Usuario"%>
 <%@page import="sv.edu.itca.practicas.model.Carrera"%>
+<%@page import="sv.edu.itca.practicas.model.TipoCarrera"%>
+<%@page import="sv.edu.itca.practicas.util.Html"%>
 <%@page import="java.util.List"%>
 
 <%
@@ -11,6 +13,12 @@
 
     Integer totalCarrerasObj = (Integer) request.getAttribute("totalCarreras");
     int totalCarreras = totalCarrerasObj != null ? totalCarrerasObj : (carreras != null ? carreras.size() : 0);
+
+    @SuppressWarnings("unchecked")
+    List<TipoCarrera> tipos = (List<TipoCarrera>) request.getAttribute("tipos");
+
+    String mensajeOk = (String) request.getAttribute("mensajeOk");
+    String mensajeError = (String) request.getAttribute("mensajeError");
 %>
 
 <!DOCTYPE html>
@@ -201,7 +209,7 @@
 
         <div>
 
-            <a href="${pageContext.request.contextPath}/admin/dashboard"
+            <a href="${pageContext.request.contextPath}/admin/dashboard.jsp"
                class="btn btn-outline-secondary">
                 ⬅️ Volver al Dashboard
             </a>
@@ -210,6 +218,14 @@
 
     </div>
 
+
+    <% if (mensajeOk != null) { %>
+        <div class="alert alert-success"><%= Html.esc(mensajeOk) %></div>
+    <% } %>
+
+    <% if (mensajeError != null) { %>
+        <div class="alert alert-danger"><%= Html.esc(mensajeError) %></div>
+    <% } %>
 
     <!-- =================================================
          TARJETAS DE RESUMEN Y FORMULARIO DE REGISTRO
@@ -263,6 +279,7 @@
                                    name="nombre"
                                    class="form-control"
                                    placeholder="Ej. Técnico en Ingeniería de Desarrollo de Software"
+                                   maxlength="150"
                                    required>
 
                         </div>
@@ -270,15 +287,19 @@
                         <div class="col-md-3">
 
                             <label class="form-label text-secondary small fw-semibold">
-                                Horas requeridas
+                                Tipo de carrera
                             </label>
 
-                            <input type="number"
-                                   name="horas"
-                                   class="form-control"
-                                   placeholder="Ej. 500"
-                                   min="1"
-                                   required>
+                            <select name="idTipoCarrera" class="form-select" required>
+                                <option value="">Seleccionar</option>
+                                <% if (tipos != null) {
+                                       for (TipoCarrera t : tipos) { %>
+                                    <option value="<%= t.getId() %>">
+                                        <%= Html.esc(t.getNombre()) %> (<%= t.getHorasRequeridas() %> h)
+                                    </option>
+                                <%     }
+                                   } %>
+                            </select>
 
                         </div>
 
@@ -332,7 +353,9 @@
                     <tr>
                         <th>ID</th>
                         <th>Carrera</th>
+                        <th>Tipo</th>
                         <th>Horas Requeridas</th>
+                        <th>Alumnos</th>
                         <th class="text-end">Acciones</th>
                     </tr>
 
@@ -353,8 +376,12 @@
 
                         <td>
                             <div class="fw-semibold">
-                                <%= carrera.getNombre() %>
+                                <%= Html.esc(carrera.getNombre()) %>
                             </div>
+                        </td>
+
+                        <td>
+                            <%= Html.esc(carrera.getTipo()) %>
                         </td>
 
                         <td>
@@ -363,14 +390,22 @@
                             </span>
                         </td>
 
+                        <td>
+                            <%= carrera.getTotalAlumnos() %>
+                        </td>
+
                         <td class="text-end">
 
-                            <a class="btn btn-sm btn-outline-danger"
-                               href="${pageContext.request.contextPath}/admin/carreras?accion=eliminar&id=<%= carrera.getId() %>"
-                               onclick="return confirm('¿Está seguro de eliminar esta carrera?');"
-                               title="Eliminar carrera">
-                                🗑️ Eliminar
-                            </a>
+                            <% if (carrera.getTotalAlumnos() > 0) { %>
+                                <span class="text-muted small">Tiene alumnos</span>
+                            <% } else { %>
+                                <a class="btn btn-sm btn-outline-danger"
+                                   href="${pageContext.request.contextPath}/admin/carreras?accion=eliminar&id=<%= carrera.getId() %>"
+                                   onclick="return confirm('¿Está seguro de eliminar esta carrera?');"
+                                   title="Eliminar carrera">
+                                    🗑️ Eliminar
+                                </a>
+                            <% } %>
 
                         </td>
 
@@ -382,7 +417,7 @@
                     %>
 
                     <tr>
-                        <td colspan="4" class="text-center py-4 text-muted">
+                        <td colspan="6" class="text-center py-4 text-muted">
                             🚫 No se encontraron carreras registradas en el sistema.
                         </td>
                     </tr>

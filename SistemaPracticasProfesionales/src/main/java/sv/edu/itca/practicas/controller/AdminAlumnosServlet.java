@@ -7,9 +7,12 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import sv.edu.itca.practicas.model.AlumnoAdmin;
 import sv.edu.itca.practicas.service.AlumnoAdminService;
+import sv.edu.itca.practicas.service.CarreraAdminService;
+import sv.edu.itca.practicas.util.ReglaNegocioException;
 
 @WebServlet(
         name = "AdminAlumnosServlet",
@@ -17,11 +20,16 @@ import sv.edu.itca.practicas.service.AlumnoAdminService;
 )
 public class AdminAlumnosServlet extends HttpServlet {
 
+    private static final String FLASH_OK = "flashOk";
+    private static final String FLASH_ERROR = "flashError";
+
     private AlumnoAdminService service;
+    private CarreraAdminService carreraService;
 
     @Override
     public void init() throws ServletException {
         service = new AlumnoAdminService();
+        carreraService = new CarreraAdminService();
     }
 
     @Override
@@ -30,36 +38,24 @@ public class AdminAlumnosServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        String accion = request.getParameter("accion");
-
-        if ("cambiarEstado".equals(accion)) {
-
+        if ("cambiarEstado".equals(request.getParameter("accion"))) {
             cambiarEstado(request, response);
-
             return;
         }
 
-        request.setAttribute(
-                "alumnos",
-                service.listarTodos()
-        );
+        HttpSession session = request.getSession();
+        request.setAttribute("mensajeOk", session.getAttribute(FLASH_OK));
+        request.setAttribute("mensajeError", session.getAttribute(FLASH_ERROR));
+        session.removeAttribute(FLASH_OK);
+        session.removeAttribute(FLASH_ERROR);
 
-        request.setAttribute(
-                "totalAlumnos",
-                service.contarTodos()
-        );
+        request.setAttribute("alumnos", service.listarTodos());
+        request.setAttribute("carreras", carreraService.listarTodos());
+        request.setAttribute("totalAlumnos", service.contarTodos());
+        request.setAttribute("alumnosActivos", service.contarActivos());
 
-        request.setAttribute(
-                "alumnosActivos",
-                service.contarActivos()
-        );
-
-        request.getRequestDispatcher(
-                "/admin/alumnos.jsp"
-        ).forward(
-                request,
-                response
-        );
+        request.getRequestDispatcher("/admin/alumnos.jsp")
+                .forward(request, response);
     }
 
     @Override
@@ -70,30 +66,28 @@ public class AdminAlumnosServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        AlumnoAdmin alumno = new AlumnoAdmin();
+        HttpSession session = request.getSession();
 
-        alumno.setNombre(
-                request.getParameter("nombre")
-        );
+        try {
+            AlumnoAdmin alumno = new AlumnoAdmin();
+            alumno.setNombre(request.getParameter("nombre"));
+            alumno.setApellido(request.getParameter("apellido"));
+            alumno.setCorreo(request.getParameter("correo"));
+            alumno.setPassword(request.getParameter("password"));
+            alumno.setCarnet(request.getParameter("carnet"));
+            alumno.setTelefono(request.getParameter("telefono"));
+            alumno.setIdCarrera(Integer.parseInt(request.getParameter("idCarrera")));
 
-        alumno.setCarnet(
-                request.getParameter("carnet")
-        );
+            service.guardar(alumno);
+            session.setAttribute(FLASH_OK, "Alumno registrado correctamente.");
 
-        alumno.setCarrera(
-                request.getParameter("carrera")
-        );
+        } catch (NumberFormatException e) {
+            session.setAttribute(FLASH_ERROR, "Selecciona una carrera.");
+        } catch (ReglaNegocioException e) {
+            session.setAttribute(FLASH_ERROR, e.getMessage());
+        }
 
-        alumno.setUsuario(
-                request.getParameter("usuario")
-        );
-
-        service.guardar(alumno);
-
-        response.sendRedirect(
-                request.getContextPath()
-                + "/admin/alumnos"
-        );
+        response.sendRedirect(request.getContextPath() + "/admin/alumnos");
     }
 
     private void cambiarEstado(
@@ -101,21 +95,18 @@ public class AdminAlumnosServlet extends HttpServlet {
             HttpServletResponse response)
             throws IOException {
 
+        HttpSession session = request.getSession();
+
         try {
-
-            int id = Integer.parseInt(
-                    request.getParameter("id")
-            );
-
+            int id = Integer.parseInt(request.getParameter("id"));
             service.cambiarEstado(id);
-
-        } catch (Exception e) {
-            // Se mantiene el comportamiento original.
+            session.setAttribute(FLASH_OK, "Estado actualizado.");
+        } catch (NumberFormatException e) {
+            session.setAttribute(FLASH_ERROR, "Alumno no válido.");
+        } catch (ReglaNegocioException e) {
+            session.setAttribute(FLASH_ERROR, e.getMessage());
         }
 
-        response.sendRedirect(
-                request.getContextPath()
-                + "/admin/alumnos"
-        );
+        response.sendRedirect(request.getContextPath() + "/admin/alumnos");
     }
 }

@@ -7,26 +7,17 @@ public class MaestroAdmin implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private int id;
+    private int idUsuario;
     private String nombre;
-    private String usuario;
+    private String apellido;
+    private String correo;
+    private String password;
+    private String codigoEmpleado;
     private String especialidad;
-    private String estado;
+    private String telefono;
+    private boolean activo;
 
     public MaestroAdmin() {
-    }
-
-    public MaestroAdmin(
-            int id,
-            String nombre,
-            String usuario,
-            String especialidad,
-            String estado) {
-
-        this.id = id;
-        this.nombre = nombre;
-        this.usuario = usuario;
-        this.especialidad = especialidad;
-        this.estado = estado;
     }
 
     public int getId() {
@@ -37,6 +28,14 @@ public class MaestroAdmin implements Serializable {
         this.id = id;
     }
 
+    public int getIdUsuario() {
+        return idUsuario;
+    }
+
+    public void setIdUsuario(int idUsuario) {
+        this.idUsuario = idUsuario;
+    }
+
     public String getNombre() {
         return nombre;
     }
@@ -45,12 +44,41 @@ public class MaestroAdmin implements Serializable {
         this.nombre = nombre;
     }
 
-    public String getUsuario() {
-        return usuario;
+    public String getApellido() {
+        return apellido;
     }
 
-    public void setUsuario(String usuario) {
-        this.usuario = usuario;
+    public void setApellido(String apellido) {
+        this.apellido = apellido;
+    }
+
+    public String getNombreCompleto() {
+        return (nombre == null ? "" : nombre)
+                + (apellido == null || apellido.isEmpty() ? "" : " " + apellido);
+    }
+
+    public String getCorreo() {
+        return correo;
+    }
+
+    public void setCorreo(String correo) {
+        this.correo = correo;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getCodigoEmpleado() {
+        return codigoEmpleado;
+    }
+
+    public void setCodigoEmpleado(String codigoEmpleado) {
+        this.codigoEmpleado = codigoEmpleado;
     }
 
     public String getEspecialidad() {
@@ -61,11 +89,23 @@ public class MaestroAdmin implements Serializable {
         this.especialidad = especialidad;
     }
 
-    public String getEstado() {
-        return estado;
+    public String getTelefono() {
+        return telefono;
     }
 
-    public void setEstado(String estado) {
-        this.estado = estado;
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
+    }
+
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
+    }
+
+    public String getEstado() {
+        return activo ? "ACTIVO" : "INACTIVO";
     }
 }

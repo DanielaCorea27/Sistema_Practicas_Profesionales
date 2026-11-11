@@ -1,76 +1,176 @@
 package sv.edu.itca.practicas.dao;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
 import sv.edu.itca.practicas.model.Carrera;
+import sv.edu.itca.practicas.model.TipoCarrera;
+import sv.edu.itca.practicas.util.Conexion;
 
 public class CarreraAdminDAO {
 
-    private static final List<Carrera> carreras = new ArrayList<>();
+    private static final String SELECT =
+            "SELECT c.id_carrera, c.nombre, c.id_tipo_carrera, "
+            + "t.nombre AS tipo, t.horas_requeridas, "
+            + "(SELECT COUNT(*) FROM alumnos a WHERE a.id_carrera = c.id_carrera) AS total_alumnos "
+            + "FROM carreras c "
+            + "JOIN tipo_carrera t ON t.id_tipo_carrera = c.id_tipo_carrera ";
 
-    private static int siguienteId = 4;
+    private Carrera mapear(ResultSet rs) throws SQLException {
 
-    static {
-
-        Carrera carrera1 = new Carrera();
-        carrera1.setId(1);
-        carrera1.setNombre("Ingeniería en Desarrollo de Software");
-        carrera1.setHorasRequeridas(640);
-        carreras.add(carrera1);
-
-        Carrera carrera2 = new Carrera();
-        carrera2.setId(2);
-        carrera2.setNombre("Ingeniería en Sistemas");
-        carrera2.setHorasRequeridas(640);
-        carreras.add(carrera2);
-
-        Carrera carrera3 = new Carrera();
-        carrera3.setId(3);
-        carrera3.setNombre("Técnico en Desarrollo de Software");
-        carrera3.setHorasRequeridas(320);
-        carreras.add(carrera3);
+        Carrera c = new Carrera(
+                rs.getInt("id_carrera"),
+                rs.getString("nombre"),
+                rs.getInt("id_tipo_carrera"),
+                rs.getString("tipo"),
+                rs.getInt("horas_requeridas")
+        );
+        c.setTotalAlumnos(rs.getInt("total_alumnos"));
+        return c;
     }
 
     public List<Carrera> listarTodos() {
-        return new ArrayList<>(carreras);
+
+        List<Carrera> lista = new ArrayList<>();
+
+        try (Connection con = Conexion.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(SELECT + "ORDER BY c.nombre");
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                lista.add(mapear(rs));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return lista;
     }
 
     public Carrera buscarPorId(int id) {
 
-        for (Carrera carrera : carreras) {
+        try (Connection con = Conexion.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(SELECT + "WHERE c.id_carrera = ?")) {
 
-            if (carrera.getId() == id) {
-                return carrera;
+            ps.setInt(1, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? mapear(rs) : null;
             }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public List<TipoCarrera> listarTipos() {
+
+        List<TipoCarrera> lista = new ArrayList<>();
+
+        try (Connection con = Conexion.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(
+                     "SELECT id_tipo_carrera, nombre, horas_requeridas "
+                     + "FROM tipo_carrera ORDER BY horas_requeridas");
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                lista.add(new TipoCarrera(
+                        rs.getInt("id_tipo_carrera"),
+                        rs.getString("nombre"),
+                        rs.getInt("horas_requeridas")
+                ));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
-        return null;
+        return lista;
+    }
+
+    public boolean existeTipo(int idTipo) {
+        return contar("SELECT COUNT(*) FROM tipo_carrera WHERE id_tipo_carrera = ?", idTipo) > 0;
+    }
+
+    public boolean existeNombre(String nombre) {
+
+        try (Connection con = Conexion.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(
+                     "SELECT COUNT(*) FROM carreras WHERE LOWER(nombre) = LOWER(?)")) {
+
+            ps.setString(1, nombre);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() && rs.getInt(1) > 0;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public boolean insertar(Carrera carrera) {
 
-        if (carrera == null) {
+        try (Connection con = Conexion.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(
+                     "INSERT INTO carreras (id_tipo_carrera, nombre) VALUES (?, ?)")) {
+
+            ps.setInt(1, carrera.getIdTipoCarrera());
+            ps.setString(2, carrera.getNombre());
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
             return false;
         }
+    }
 
-        carrera.setId(siguienteId++);
-        carreras.add(carrera);
-
-        return true;
+    public int contarAlumnos(int idCarrera) {
+        return contar("SELECT COUNT(*) FROM alumnos WHERE id_carrera = ?", idCarrera);
     }
 
     public boolean eliminar(int id) {
 
-        Carrera carrera = buscarPorId(id);
+        try (Connection con = Conexion.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(
+                     "DELETE FROM carreras WHERE id_carrera = ?")) {
 
-        if (carrera == null) {
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
             return false;
         }
-
-        return carreras.remove(carrera);
     }
 
     public int contarTodos() {
-        return carreras.size();
+        return contar("SELECT COUNT(*) FROM carreras", null);
+    }
+
+    private int contar(String sql, Integer parametro) {
+
+        try (Connection con = Conexion.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            if (parametro != null) {
+                ps.setInt(1, parametro);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 0;
+        }
     }
 }
