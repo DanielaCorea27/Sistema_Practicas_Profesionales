@@ -20,6 +20,14 @@ public class RegistroHoraService {
         return registroHoraDAO.listarTodos();
     }
 
+    public List<RegistroHora> listarPorMaestro(int maestroId) {
+        return registroHoraDAO.listarPorMaestro(maestroId);
+    }
+
+    public boolean perteneceAMaestro(int actividadId, int maestroId) {
+        return registroHoraDAO.perteneceAMaestro(actividadId, maestroId);
+    }
+
     public RegistroHora buscarPorId(int id) {
         return registroHoraDAO.buscarPorId(id);
     }
@@ -63,7 +71,9 @@ public class RegistroHoraService {
         return registroHoraDAO.actualizar(registro);
     }
 
-    /** Elimina un registro SOLO si pertenece a ese alumno y no esta aprobado. */
+    /**
+     * Elimina un registro SOLO si pertenece a ese alumno y no esta aprobado.
+     */
     public boolean eliminar(int id, int alumnoId) {
 
         if (id <= 0 || alumnoId <= 0) {
@@ -109,8 +119,8 @@ public class RegistroHoraService {
             int alumnoId,
             double horasRequeridas) {
 
-        double aprobadas =
-                obtenerHorasAprobadas(alumnoId);
+        double aprobadas
+                = obtenerHorasAprobadas(alumnoId);
 
         return Math.max(
                 horasRequeridas - aprobadas,
@@ -126,11 +136,11 @@ public class RegistroHoraService {
             return 0;
         }
 
-        double aprobadas =
-                obtenerHorasAprobadas(alumnoId);
+        double aprobadas
+                = obtenerHorasAprobadas(alumnoId);
 
-        double porcentaje =
-                (aprobadas / horasRequeridas) * 100;
+        double porcentaje
+                = (aprobadas / horasRequeridas) * 100;
 
         return Math.min(porcentaje, 100);
     }

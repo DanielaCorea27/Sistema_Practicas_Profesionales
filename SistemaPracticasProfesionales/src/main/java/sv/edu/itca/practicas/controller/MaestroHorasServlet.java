@@ -7,6 +7,12 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
+import javax.servlet.http.HttpSession;
+import sv.edu.itca.practicas.model.RegistroHora;
+import sv.edu.itca.practicas.model.Rol;
+import sv.edu.itca.practicas.model.Usuario;
+import sv.edu.itca.practicas.service.MaestroService;
 
 import sv.edu.itca.practicas.service.RegistroHoraService;
 
@@ -17,15 +23,14 @@ import sv.edu.itca.practicas.service.RegistroHoraService;
 public class MaestroHorasServlet extends HttpServlet {
 
     private RegistroHoraService service;
-
+    private MaestroService maestroService;
 
     @Override
     public void init() {
 
-        service =
-                new RegistroHoraService();
+        service = new RegistroHoraService();
+        maestroService = new MaestroService();
     }
-
 
     @Override
     protected void doGet(
@@ -35,24 +40,38 @@ public class MaestroHorasServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        request.setAttribute(
-                "registros",
-                service.listarTodos()
-        );
+        HttpSession session = request.getSession(false);
+        Usuario usuario = (Usuario) session.getAttribute("usuario");
 
-        request.setAttribute(
-                "pendientes",
-                service.obtenerRegistrosPendientes()
-        );
+        List<RegistroHora> registros;
 
-        request.getRequestDispatcher(
-                "/maestro/horas.jsp"
-        ).forward(
-                request,
-                response
-        );
+        if (usuario.getRol() == Rol.ADMINISTRADOR) {
+
+            // El admin puede entrar a /maestro/*, así que ve todo
+            registros = service.listarTodos();
+
+        } else {
+
+            // El maestro solo ve a sus alumnos
+            int maestroId = maestroService.obtenerIdMaestro(usuario.getId());
+            registros = service.listarPorMaestro(maestroId);
+        }
+
+        int pendientes = 0;
+
+        for (RegistroHora r : registros) {
+
+            if ("PENDIENTE".equals(r.getEstado())) {
+                pendientes++;
+            }
+        }
+
+        request.setAttribute("registros", registros);
+        request.setAttribute("pendientes", pendientes);
+
+        request.getRequestDispatcher("/maestro/horas.jsp")
+                .forward(request, response);
     }
-
 
     @Override
     protected void doPost(
@@ -62,17 +81,16 @@ public class MaestroHorasServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        String accion =
-                request.getParameter("accion");
+        String accion
+                = request.getParameter("accion");
 
-        String idParametro =
-                request.getParameter("id");
+        String idParametro
+                = request.getParameter("id");
 
-        String observacion =
-                request.getParameter(
+        String observacion
+                = request.getParameter(
                         "observacion"
                 );
-
 
         int id;
 
@@ -91,28 +109,41 @@ public class MaestroHorasServlet extends HttpServlet {
 
             return;
         }
+        HttpSession session = request.getSession(false);
+        Usuario usuario = (Usuario) session.getAttribute("usuario");
 
+        if (usuario.getRol() != Rol.ADMINISTRADOR) {
 
+            int maestroId = maestroService.obtenerIdMaestro(usuario.getId());
+
+            if (!service.perteneceAMaestro(id, maestroId)) {
+
+                response.sendRedirect(
+                        request.getContextPath()
+                        + "/maestro/horas?error=accion"
+                );
+
+                return;
+            }
+        }
         boolean resultado = false;
-
 
         if ("aprobar".equals(accion)) {
 
-            resultado =
-                    service.aprobar(
+            resultado
+                    = service.aprobar(
                             id,
                             observacion
                     );
 
         } else if ("rechazar".equals(accion)) {
 
-            resultado =
-                    service.rechazar(
+            resultado
+                    = service.rechazar(
                             id,
                             observacion
                     );
         }
-
 
         if (resultado) {
 

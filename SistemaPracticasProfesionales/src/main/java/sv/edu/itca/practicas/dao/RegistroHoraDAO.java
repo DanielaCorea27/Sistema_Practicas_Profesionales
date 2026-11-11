@@ -112,6 +112,38 @@ public class RegistroHoraDAO {
 
         return consultar(SELECT + ORDEN, null);
     }
+    
+    public List<RegistroHora> listarPorMaestro(int maestroId) {
+
+    if (maestroId <= 0) {
+        return new ArrayList<>();
+    }
+
+    return consultar(
+            SELECT + "AND pa.id_maestro = ? " + ORDEN, maestroId);
+}
+    
+    public boolean perteneceAMaestro(int actividadId, int maestroId) {
+
+    String sql = "SELECT 1 " + FROM
+            + "WHERE x.id_actividad = ? AND pa.id_maestro = ? "
+            + "AND x.horas > 0";
+
+    try (Connection con = Conexion.obtenerConexion();
+         PreparedStatement ps = con.prepareStatement(sql)) {
+
+        ps.setInt(1, actividadId);
+        ps.setInt(2, maestroId);
+
+        try (ResultSet rs = ps.executeQuery()) {
+            return rs.next();
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
+    }
+}
 
     public RegistroHora buscarPorId(int id) {
 
